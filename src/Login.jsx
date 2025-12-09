@@ -64,17 +64,65 @@ const Login = () => {
           />
 
           <label>Security Text</label>
-          <div className="captcha-row">
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             <input
               type="text"
               placeholder="Enter the shown text"
               value={captchaInput}
               onChange={(e) => setCaptchaInput(e.target.value)}
+              style={{ flex: 1 }}
             />
 
-            <div className="captcha-box">
-              <span className="captcha-text">{captcha}</span>
-              <button type="button" onClick={generateCaptcha} className="cap-refresh">↻</button>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              padding: '8px 12px',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              backgroundColor: '#fff'
+            }}>
+              <div style={{ 
+                display: 'flex', 
+                userSelect: 'none',
+                letterSpacing: '1px'
+              }}>
+                {captcha.split('').map((char, index) => (
+                  <span
+                    key={index}
+                    style={{
+                      display: 'inline-block',
+                      transform: `rotate(${(Math.random() - 0.5) * 20}deg) translateY(${(Math.random() - 0.5) * 4}px)`,
+                      fontSize: '20px',
+                      fontWeight: 'bold',
+                      fontFamily: 'monospace',
+                      color: '#000',
+                      textDecoration: Math.random() > 0.5 ? 'line-through' : 'none',
+                      fontStyle: Math.random() > 0.5 ? 'italic' : 'normal',
+                      marginRight: '2px'
+                    }}
+                  >
+                    {char}
+                  </span>
+                ))}
+              </div>
+              
+              <button 
+                type="button" 
+                onClick={generateCaptcha}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '20px',
+                  padding: '0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: '#666'
+                }}
+              >
+                ↻
+              </button>
             </div>
           </div>
 

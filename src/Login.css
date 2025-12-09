@@ -14,7 +14,7 @@
   bottom: -60px;
   left: 0;
   width: 50vw;
-  height: 70vh;
+  height: 60vh;
   background-image: url("./assets/bg1.png");
   background-size: contain;
   background-repeat: no-repeat;
@@ -27,7 +27,7 @@
   bottom: -60px;
   right: 0;
   width: 50vw;
-  height: 70vh;
+  height: 60vh;
   background-image: url("./assets/bg2.png");
   background-size: contain;
   background-repeat: no-repeat;
