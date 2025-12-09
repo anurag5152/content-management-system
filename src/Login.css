@@ -1,0 +1,172 @@
+/* full page container */
+.login-page {
+  overflow: hidden;
+  min-height: 100vh;
+  background: #f6f7fb;  /* plain bg top */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+/* skyline only at bottom */
+.login-page::after {
+  content: "";
+  position: absolute;
+  bottom: -60px;
+  left: 0;
+  width: 50vw;
+  height: 70vh;
+  background-image: url("./assets/bg1.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  pointer-events: none;
+}
+.login-page::before {
+  content: "";
+  position: absolute;
+  bottom: -60px;
+  right: 0;
+  width: 50vw;
+  height: 70vh;
+  background-image: url("./assets/bg2.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  pointer-events: none;
+}
+
+
+
+/* card */
+.login-card {
+  width: 450px;
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.07);
+  z-index: 10;
+}
+
+/* logo row */
+.login-logo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.logo-img {
+  width: 40px;
+}
+
+.logo-base{
+    position: absolute;
+    z-index: -1;
+}
+
+.logo-text {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* title */
+.login-title {
+  font-size: 28px;
+  margin: 0 0 30px;
+  color: #143a68;
+}
+
+/* inputs */
+form label {
+  font-size: 14px;
+  margin-top: 12px;
+  display: block;
+}
+
+form input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #cfd3db;
+  border-radius: 8px;
+  margin-top: 4px;
+  font-size: 14px;
+}
+
+/* captcha */
+.captcha-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 10px;
+}
+
+.captcha-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f2f3f8;
+  border: 1px solid #cfd3db;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.captcha-text {
+  letter-spacing: 2px;
+  font-weight: 600;
+}
+
+.cap-refresh {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* remember row */
+.remember {
+  display: flex;
+  align-items: center;
+  font-size: small;
+  gap: 5px;
+  margin: 15px 0;
+}
+
+.remember input.box {
+  margin: 0; /* Important: Resets the margin-top: 4px inherited from 'form input' */
+  padding: 0; /* Resets padding just in case */
+  width: auto; /* Ensures it acts like a regular checkbox, not full width */
+}
+/* login button */
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  background: #1f3c80;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* OR divider */
+.divider {
+  text-align: center;
+  margin: 30px 0 16px;
+  color: #8a8fa5;
+  font-size: 14px;
+}
+
+/* socials */
+.social-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+}
+
+.social-buttons button {
+  border: 1px solid #cfd3db;
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
