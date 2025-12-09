@@ -1,15 +1,13 @@
-/* full page container */
 .login-page {
   overflow: hidden;
   min-height: 100vh;
-  background: #f6f7fb;  /* plain bg top */
+  background: #f6f7fb;
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
 }
 
-/* skyline only at bottom */
 .login-page::after {
   content: "";
   position: absolute;
@@ -39,7 +37,6 @@
 
 
 
-/* card */
 .login-card {
   width: 450px;
   background: white;
@@ -49,7 +46,6 @@
   z-index: 10;
 }
 
-/* logo row */
 .login-logo {
   display: flex;
   align-items: center;
@@ -71,14 +67,12 @@
   font-size: 15px;
 }
 
-/* title */
 .login-title {
   font-size: 28px;
   margin: 0 0 30px;
-  color: #143a68;
+  color: #153060;
 }
 
-/* inputs */
 form label {
   font-size: 14px;
   margin-top: 12px;
@@ -94,7 +88,6 @@ form input {
   font-size: 14px;
 }
 
-/* captcha */
 .captcha-row {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
@@ -132,15 +125,14 @@ form input {
 }
 
 .remember input.box {
-  margin: 0; /* Important: Resets the margin-top: 4px inherited from 'form input' */
-  padding: 0; /* Resets padding just in case */
-  width: auto; /* Ensures it acts like a regular checkbox, not full width */
+  margin: 0; 
+  padding: 0; 
+  width: auto;
 }
-/* login button */
 .login-btn {
   width: 100%;
   padding: 12px;
-  background: #1f3c80;
+  background: #243874;
   color: white;
   border: none;
   border-radius: 8px;
@@ -148,7 +140,6 @@ form input {
   cursor: pointer;
 }
 
-/* OR divider */
 .divider {
   text-align: center;
   margin: 30px 0 16px;
@@ -156,7 +147,6 @@ form input {
   font-size: 14px;
 }
 
-/* socials */
 .social-buttons {
   display: flex;
   flex-direction: row;

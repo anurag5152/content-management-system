@@ -38,9 +38,7 @@ const Login = () => {
   return (
     <div className="login-page">
       <div className="login-card">
-        {/* top logo */}
         <div className="login-logo">
-          {/* insert real logo */}
           <img src={logobase} alt="logo" className="logo-img logo-base" />
           <img src={logotop} alt="logo" className="logo-img logotop" />
           <span className="logo-text">UTTAR PRADESH TIMES</span>
@@ -88,7 +86,6 @@ const Login = () => {
           <button className="login-btn">Log in</button>
         </form>
 
-        {/* divider */}
         <div className="divider">
           <span>OR</span>
         </div>
