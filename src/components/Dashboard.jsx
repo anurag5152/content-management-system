@@ -1,4 +1,8 @@
 import Sidebar from "../components/Sidebar";
+import published from  "../assets/Dash-logos/published-logo.png";
+import pending from  "../assets/Dash-logos/pending-logo.png";
+import planned from "../assets/Dash-logos/planned-logo.png";
+import rejected from "../assets/Dash-logos/reject-logo.png";
 
 const Dashboard = () => {
   const rows = [
@@ -85,16 +89,16 @@ const Dashboard = () => {
               </select>
             </div>
 
-            <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md">
+            <button className="bg-[#243874] hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md">
               Get Data
             </button>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-            <SummaryCard label="Published" value={240} color="bg-emerald-500" />
-            <SummaryCard label="Pending" value={16} color="bg-amber-400" />
-            <SummaryCard label="Planned" value={12} color="bg-sky-500" />
-            <SummaryCard label="Hold / Reject" value={0} color="bg-red-500" />
+            <SummaryCard label="Published" value={240} color="bg-emerald-500/30" Icon={<img src={published} alt="Published Count" className="h-5 w-5" />} />
+            <SummaryCard label="Pending" value={16} color="bg-amber-400/30" Icon={<img src={pending} alt="Published Count" className="h-5 w-5" />} />
+            <SummaryCard label="Planned" value={12} color="bg-sky-500/30" Icon={<img src={planned} alt="Published Count" className="h-5 w-5" />} />
+            <SummaryCard label="Hold / Reject" value={0} color="bg-red-500/30" Icon={<img src={rejected} alt="Published Count" className="h-5 w-5" />} />
           </div>
 
           <div className="border border-slate-200 rounded-lg overflow-hidden">
@@ -144,13 +148,13 @@ const Dashboard = () => {
   );
 };
 
-const SummaryCard = ({ label, value, color }) => {
+const SummaryCard = ({ label, value, color, Icon }) => {
   return (
     <div className="flex items-center gap-3 border border-slate-200 rounded-lg px-3 py-3">
       <div
-        className={`${color} text-white w-10 h-10 rounded-md flex items-center justify-center text-lg font-semibold`}
+        className={`${color} w-10 h-10 rounded-md flex items-center justify-center`}
       >
-        {label[0]}
+        {Icon}
       </div>
       <div className="flex flex-col">
         <span className="text-xs text-slate-500">{label}</span>
