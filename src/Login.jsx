@@ -2,8 +2,11 @@ import { useState, useEffect } from "react";
 import "../src/Login.css";
 import logobase from './assets/logo_base.png';
 import logotop from './assets/logo_top.png';
+import { useNavigate } from "react-router-dom";
+
 
 const Login = () => {
+  const navigate = useNavigate();
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const [captcha, setCaptcha] = useState("");
@@ -32,7 +35,7 @@ const Login = () => {
       return;
     }
 
-    alert("login success (dummy)");
+    navigate("/Dashboard");
   };
 
   return (
