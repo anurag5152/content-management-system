@@ -1,9 +1,6 @@
-// src/pages/Dashboard.jsx
-import React from "react";
 import Sidebar from "../components/Sidebar";
 
 const Dashboard = () => {
-  // later you’ll replace this dummy data with API data
   const rows = [
     {
       id: "1998498",
@@ -27,16 +24,12 @@ const Dashboard = () => {
     <div className="min-h-screen bg-slate-100 flex">
       <Sidebar />
 
-      {/* main content area */}
       <main className="flex-1 p-6">
-        {/* page title */}
         <header className="mb-4">
           <h1 className="text-xl font-semibold text-slate-800">Dashboard</h1>
         </header>
 
-        {/* white card like in Figma */}
         <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-          {/* FILTERS ROW */}
           <div className="flex flex-wrap items-end gap-3 mb-4">
             <div className="flex flex-col">
               <label className="text-xs font-medium text-slate-500 mb-1">
@@ -97,7 +90,6 @@ const Dashboard = () => {
             </button>
           </div>
 
-          {/* SUMMARY CARDS */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
             <SummaryCard label="Published" value={240} color="bg-emerald-500" />
             <SummaryCard label="Pending" value={16} color="bg-amber-400" />
@@ -105,7 +97,6 @@ const Dashboard = () => {
             <SummaryCard label="Hold / Reject" value={0} color="bg-red-500" />
           </div>
 
-          {/* TABLE */}
           <div className="border border-slate-200 rounded-lg overflow-hidden">
             <table className="min-w-full text-left text-sm">
               <thead className="bg-slate-50 border-b border-slate-200">
@@ -159,7 +150,6 @@ const SummaryCard = ({ label, value, color }) => {
       <div
         className={`${color} text-white w-10 h-10 rounded-md flex items-center justify-center text-lg font-semibold`}
       >
-        {/* simple icon letter – replace with SVG if you want */}
         {label[0]}
       </div>
       <div className="flex flex-col">
