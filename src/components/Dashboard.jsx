@@ -43,7 +43,6 @@ const Dashboard = () => {
             <Sidebar />
 
             <main className="flex-1 p-6">
-                {/* TOP ROW: Dashboard on LEFT, Search/Mandal/District on RIGHT */}
                 <div className="flex items-center justify-between mb-6">
                     <h1 className="text-xl font-semibold text-slate-800">Dashboard</h1>
 
@@ -64,7 +63,6 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* SECOND ROW: Date & Product Type & Button */}
                 <div className="flex items-end gap-3 mb-6">
                     <div className="flex flex-col">
                         <label className="text-xs font-medium text-slate-600 mb-1">
@@ -122,7 +120,6 @@ const Dashboard = () => {
                     </button>
                 </div>
 
-                {/* Summary Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <SummaryCard label="Published" value={240} color="bg-emerald-500/30" Icon={<img src={published} alt="Published Count" className="h-8 w-8" />} />
                     <SummaryCard label="Pending" value={16} color="bg-amber-400/30" Icon={<img src={pending} alt="Pending Count" className="h-8 w-8" />} />
@@ -130,7 +127,6 @@ const Dashboard = () => {
                     <SummaryCard label="Hold / Reject" value={0} color="bg-red-500/30" Icon={<img src={rejected} alt="Rejected Count" className="h-8 w-8" />} />
                 </div>
 
-                {/* Data Table */}
                 <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
                     <table className="min-w-full text-left text-sm">
                         <thead className="bg-[#F8F8F8] border-b border-slate-200">
