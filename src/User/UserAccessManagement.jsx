@@ -29,12 +29,9 @@ const UserAccessManagement = () => {
       <Sidebar />
 
       {/* main content area */}
-      <main className="flex-1 p-6">
-        <h1 className="text-xl font-semibold text-slate-800 mb-4">
-          User Management
-        </h1>
+      <main className="flex">
 
-        <div className="flex gap-6">
+        <div className="flex ">
           {/* inner module sidebar (StorySidebar) */}
           <UserSidebar active={active} onChange={setActive} />
 
