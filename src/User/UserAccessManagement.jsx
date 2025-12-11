@@ -1,13 +1,10 @@
-// src/pages/story/UserAccessManagement.jsx
 import React, { useState } from "react";
 import UserSidebar from "./UserSideBar.jsx";
-import Sidebar from "../components/Sidebar.jsx"; // your global main sidebar
+import Sidebar from "../components/Sidebar.jsx"; 
 
 const UserAccessManagement = () => {
-  // active tab handled by inner sidebar
   const [active, setActive] = useState("access");
 
-  // dummy rows for UI
   const rows = [
     { id: 1, role: "Admin", pages: "All Pages" },
     {
@@ -25,17 +22,13 @@ const UserAccessManagement = () => {
 
   return (
     <div className="min-h-screen bg-slate-100 flex">
-      {/* main left sidebar (global) */}
       <Sidebar />
 
-      {/* main content area */}
-      <main className="flex">
+      <main className="flex flex-1">
 
-        <div className="flex ">
-          {/* inner module sidebar (StorySidebar) */}
+        <div className="flex flex-1">
           <UserSidebar active={active} onChange={setActive} />
 
-          {/* right content panel */}
           <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 p-5">
             {active === "access" && (
               <AccessManagementView rows={rows} />

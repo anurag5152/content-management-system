@@ -4,13 +4,13 @@ const UserSidebar = () => {
     {
       id: "access",
       to: "/UserAccessManagement",
-      label: "User Access",
+      label: "User Access Management",
       
     },
     {
       id: "admins",
       to: "/dashboard/users/admins",
-      label: "Admin Users",
+      label: "Admin User List",
       
     },
     {
@@ -22,20 +22,20 @@ const UserSidebar = () => {
   ];
 
   return (
-    <aside className="w-40 bg-[#1E1E1E] text-slate-100 ">
+    <aside className="w-50 bg-[#1E1E1E] text-slate-100 ">
 
-      <nav className="py-4 flex flex-col items-center gap-2">
+      <nav className="py-4 flex flex-col gap-2">
         {items.map((it) => (
           <NavLink
             key={it.id}
             to={it.to}
             className={({ isActive }) =>
-              `w-full flex flex-col items-center px-3 py-3 rounded-md transition-colors ${
+              `w-[90%] ml-2 flex flex-col  px-4 py-3 rounded-md transition-colors ${
                 isActive ? "bg-[#313338] text-white" : "hover:bg-[#313338] text-slate-300"
               }`
             }
           >
-            <span className="text-xs text-center">{it.label}</span>
+            <span className="text-xs ">{it.label}</span>
           </NavLink>
         ))}
       </nav>
