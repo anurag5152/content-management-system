@@ -46,10 +46,9 @@ const Sidebar = () => {
           to="/Dashboard"
           end
           className={({ isActive }) =>
-            `w-full flex flex-col items-center px-3 py-2 rounded-md ${
-              isActive
-                ? "bg-[#313338] text-white"
-                : "hover:bg-[#313338] text-slate-300"
+            `w-full flex flex-col items-center px-3 py-2 rounded-md ${isActive
+              ? "bg-[#313338] text-white"
+              : "hover:bg-[#313338] text-slate-300"
             }`
           }
         >
@@ -62,10 +61,9 @@ const Sidebar = () => {
         <NavLink
           to="/Dashboard/story"
           className={({ isActive }) =>
-            `w-full flex flex-col items-center px-3 py-2 rounded-md ${
-              isActive
-                ? "bg-[#313338] text-white"
-                : "hover:bg-[#313338] text-slate-300"
+            `w-full flex flex-col items-center px-3 py-2 rounded-md ${isActive
+              ? "bg-[#313338] text-white"
+              : "hover:bg-[#313338] text-slate-300"
             }`
           }
         >
@@ -78,10 +76,9 @@ const Sidebar = () => {
         <NavLink
           to="/Dashboard/priority"
           className={({ isActive }) =>
-            `w-full flex flex-col items-center px-3 py-2 rounded-md ${
-              isActive
-                ? "bg-[#313338] text-white"
-                : "hover:bg-[#313338] text-slate-300"
+            `w-full flex flex-col items-center px-3 py-2 rounded-md ${isActive
+              ? "bg-[#313338] text-white"
+              : "hover:bg-[#313338] text-slate-300"
             }`
           }
         >
@@ -94,10 +91,9 @@ const Sidebar = () => {
         <NavLink
           to="/Dashboard/tools"
           className={({ isActive }) =>
-            `w-full flex flex-col items-center px-3 py-2 rounded-md ${
-              isActive
-                ? "bg-[#313338] text-white"
-                : "hover:bg-[#313338] text-slate-300"
+            `w-full flex flex-col items-center px-3 py-2 rounded-md ${isActive
+              ? "bg-[#313338] text-white"
+              : "hover:bg-[#313338] text-slate-300"
             }`
           }
         >
@@ -110,10 +106,9 @@ const Sidebar = () => {
         <NavLink
           to="/UserAccessManagement"
           className={({ isActive }) =>
-            `w-full flex flex-col items-center px-3 py-2 rounded-md ${
-              isActive
-                ? "bg-[#313338] text-white"
-                : "hover:bg-[#313338] text-slate-300"
+            `w-full flex flex-col items-center px-3 py-2 rounded-md ${isActive
+              ? "bg-[#313338] text-white"
+              : "hover:bg-[#313338] text-slate-300"
             }`
           }
         >

@@ -5,19 +5,19 @@ const UserSidebar = () => {
       id: "access",
       to: "/UserAccessManagement",
       label: "User Access Management",
-      
+
     },
     {
       id: "admins",
       to: "/dashboard/users/admins",
       label: "Admin User List",
-      
+
     },
     {
       id: "users",
       to: "/dashboard/users/list",
       label: "Users",
-      
+
     },
   ];
 
@@ -30,8 +30,7 @@ const UserSidebar = () => {
             key={it.id}
             to={it.to}
             className={({ isActive }) =>
-              `w-[90%] ml-2 flex flex-col  px-4 py-3 rounded-md transition-colors ${
-                isActive ? "bg-[#313338] text-white" : "hover:bg-[#313338] text-slate-300"
+              `w-[90%] ml-2 flex flex-col  px-4 py-3 rounded-md transition-colors ${isActive ? "bg-[#313338] text-white" : "hover:bg-[#313338] text-slate-300"
               }`
             }
           >
