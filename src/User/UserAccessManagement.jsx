@@ -61,7 +61,7 @@ const AccessManagementView = ({ rows = [] }) => {
         </h2>
 
         <div className="flex items-center gap-3">
-          <div className="relative">
+          <div className="relative bg-[#EAEAEA]">
             <input
               type="text"
               placeholder="Search by Text or ID"
@@ -72,7 +72,7 @@ const AccessManagementView = ({ rows = [] }) => {
             </span>
           </div>
 
-          <button className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3 py-1.5 rounded-md">
+          <button className="bg-[#243874] hover:bg-blue-700 text-white text-xs font-medium px-3 py-1.5 rounded-md">
             + New Access
           </button>
         </div>
@@ -80,7 +80,7 @@ const AccessManagementView = ({ rows = [] }) => {
 
       <div className="border border-slate-200 rounded-lg overflow-hidden">
         <table className="min-w-full text-xs">
-          <thead className="bg-slate-50 border-b border-slate-200">
+          <thead className="bg-[#F8F8F8] border-b border-slate-200">
             <tr>
               <th className="px-3 py-2 text-left font-medium text-slate-600 w-12">
                 ID
