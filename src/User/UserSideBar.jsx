@@ -9,7 +9,7 @@ const UserSidebar = () => {
     },
     {
       id: "admins",
-      to: "/dashboard/users/admins",
+      to: "/Users",
       label: "Admin User List",
 
     },
