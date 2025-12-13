@@ -6,9 +6,7 @@ const mysql = require("mysql2/promise");
 const app = express();
 app.use(cors());
 app.use(express.json());
-
 const PORT = process.env.PORT || 4000;
-
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -43,9 +41,20 @@ async function setupDatabase() {
       CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
         username VARCHAR(150) UNIQUE,
-        password VARCHAR(150),
-        role_id INT,
-        FOREIGN KEY (role_id) REFERENCES roles(id)
+        password VARCHAR(150) NOT NULL,
+        first_name VARCHAR(100),
+        last_name VARCHAR(100),
+        email VARCHAR(150) UNIQUE,
+        phone VARCHAR(30) UNIQUE,
+        bio TEXT,
+        designation VARCHAR(100),
+        job_type VARCHAR(100),
+        reporting_manager_id INT,
+        role_id INT NOT NULL,
+        is_active TINYINT(1) DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (role_id) REFERENCES roles(id),
+        FOREIGN KEY (reporting_manager_id) REFERENCES users(id)
       ) ENGINE=InnoDB;
     `);
 
@@ -59,55 +68,74 @@ async function setupDatabase() {
       ) ENGINE=InnoDB;
     `);
 
-    const [roleRows] = await conn.query("SELECT id FROM roles WHERE name = 'admin'");
-    let adminRoleId;
+    const [roleRows] = await conn.query(
+      "SELECT id FROM roles WHERE name = 'admin'"
+    );
 
+    let adminRoleId;
     if (roleRows.length === 0) {
-      const [result] = await conn.query("INSERT INTO roles (name) VALUES ('admin')");
-      adminRoleId = result.insertId;
-      console.log("Admin role created:", adminRoleId);
+      const [res] = await conn.query(
+        "INSERT INTO roles (name) VALUES ('admin')"
+      );
+      adminRoleId = res.insertId;
+      console.log("Admin role created");
     } else {
       adminRoleId = roleRows[0].id;
     }
 
-    const [userRows] = await conn.query("SELECT id FROM users WHERE username = 'admin'");
+    const [userRows] = await conn.query(
+      "SELECT id FROM users WHERE username = 'admin'"
+    );
+
     if (userRows.length === 0) {
       const defaultPass = process.env.DEFAULT_ADMIN_PASSWORD || "admin123";
       await conn.query(
-        "INSERT INTO users (username, password, role_id) VALUES (?, ?, ?)",
+        `
+        INSERT INTO users
+        (username, password, role_id)
+        VALUES (?, ?, ?)
+        `,
         ["admin", defaultPass, adminRoleId]
       );
+
       console.log("\nDefault admin created:");
       console.log("Username: admin");
       console.log("Password:", defaultPass, "\n");
     } else {
       console.log("Admin user already exists.");
     }
-
   } finally {
     conn.release();
   }
 }
+
 async function loadRolesWithModules() {
   const conn = await pool.getConnection();
   try {
-    const [roles] = await conn.query("SELECT id, name FROM roles ORDER BY id ASC");
+    const [roles] = await conn.query(
+      "SELECT id, name FROM roles ORDER BY id ASC"
+    );
     if (!roles.length) return [];
 
-    const roleIds = roles.map(r => r.id);
+    const roleIds = roles.map((r) => r.id);
     const placeholders = roleIds.map(() => "?").join(",");
+
     const [perms] = await conn.query(
-      `SELECT role_id, permission_key FROM role_permissions WHERE role_id IN (${placeholders})`,
+      `
+      SELECT role_id, permission_key
+      FROM role_permissions
+      WHERE role_id IN (${placeholders})
+      `,
       roleIds
     );
 
     const permMap = {};
-    for (const p of perms) {
+    perms.forEach((p) => {
       if (!permMap[p.role_id]) permMap[p.role_id] = [];
       permMap[p.role_id].push(p.permission_key);
-    }
+    });
 
-    return roles.map(r => ({
+    return roles.map((r) => ({
       id: r.id,
       name: r.name,
       modules: permMap[r.id] || [],
@@ -116,17 +144,21 @@ async function loadRolesWithModules() {
     conn.release();
   }
 }
-app.get("/api/health", (req, res) => res.json({ ok: true }));
+
+app.get("/api/health", (req, res) => {
+  res.json({ ok: true });
+});
 
 app.get("/api/roles", async (req, res) => {
   try {
     const roles = await loadRolesWithModules();
-    return res.json(roles);
+    res.json(roles);
   } catch (err) {
-    console.error("GET /api/roles error:", err);
-    return res.status(500).json({ error: "Server error" });
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
   }
 });
+
 
 app.post("/api/roles", async (req, res) => {
   const { name, modules } = req.body;
@@ -134,16 +166,15 @@ app.post("/api/roles", async (req, res) => {
   if (!name || typeof name !== "string" || !name.trim()) {
     return res.status(400).json({ error: "Role name is required" });
   }
-  const trimmedName = name.trim();
 
   if (!Array.isArray(modules)) {
     return res.status(400).json({ error: "modules must be an array" });
   }
 
-  const uniqueModules = Array.from(new Set(modules));
+  const uniqueModules = [...new Set(modules)];
   for (const m of uniqueModules) {
     if (!ALLOWED_MODULES.includes(m)) {
-      return res.status(400).json({ error: `Invalid module key: ${m}` });
+      return res.status(400).json({ error: `Invalid module: ${m}` });
     }
   }
 
@@ -151,34 +182,176 @@ app.post("/api/roles", async (req, res) => {
   try {
     await conn.beginTransaction();
 
-    const [ins] = await conn.query("INSERT INTO roles (name) VALUES (?)", [trimmedName]);
-    const newRoleId = ins.insertId;
+    const [result] = await conn.query(
+      "INSERT INTO roles (name) VALUES (?)",
+      [name.trim()]
+    );
+    const roleId = result.insertId;
 
     if (uniqueModules.length > 0) {
-      const placeholders = uniqueModules.map(() => "(?, ?)").join(", ");
+      const values = uniqueModules.map(() => "(?, ?)").join(", ");
       const params = [];
-      uniqueModules.forEach(m => {
-        params.push(newRoleId, m);
-      });
+      uniqueModules.forEach((m) => params.push(roleId, m));
 
       await conn.query(
-        `INSERT INTO role_permissions (role_id, permission_key) VALUES ${placeholders}`,
+        `INSERT INTO role_permissions (role_id, permission_key) VALUES ${values}`,
         params
       );
     }
 
     await conn.commit();
-    return res.status(201).json({ id: newRoleId, name: trimmedName, modules: uniqueModules });
 
+    res.status(201).json({
+      id: roleId,
+      name: name.trim(),
+      modules: uniqueModules,
+    });
   } catch (err) {
-    if (err.code === "ER_DUP_ENTRY") {
-      await conn.rollback();
-      return res.status(409).json({ error: "Role name already exists" });
-    }
-    console.error("POST /api/roles error:", err);
     await conn.rollback();
-    return res.status(500).json({ error: "Server error while creating role" });
+    if (err.code === "ER_DUP_ENTRY") {
+      res.status(409).json({ error: "Role already exists" });
+    } else {
+      console.error(err);
+      res.status(500).json({ error: "Server error" });
+    }
+  } finally {
+    conn.release();
+  }
+});
 
+app.get("/api/users", async (req, res) => {
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.query(`
+      SELECT
+        u.id,
+        CONCAT_WS(' ', u.first_name, u.last_name) AS name,
+        u.email,
+        u.phone,
+        u.bio,
+        r.name AS role
+      FROM users u
+      LEFT JOIN roles r ON u.role_id = r.id
+      WHERE u.is_active = 1
+      ORDER BY u.id DESC
+    `);
+
+    res.json(rows);
+  } finally {
+    conn.release();
+  }
+});
+
+app.post("/api/users", async (req, res) => {
+  const {
+    username,
+    password,
+    first_name,
+    last_name,
+    email,
+    phone,
+    bio,
+    designation,
+    job_type,
+    reporting_manager_id,
+    role_id,
+  } = req.body;
+
+  if (!password || !role_id) {
+    return res.status(400).json({
+      error: "password and role_id are required",
+    });
+  }
+
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    const [result] = await conn.query(
+      `
+      INSERT INTO users
+      (username, password, first_name, last_name, email, phone, bio,
+       designation, job_type, reporting_manager_id, role_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+      [
+        username || email,
+        password,
+        first_name || null,
+        last_name || null,
+        email || null,
+        phone || null,
+        bio || null,
+        designation || null,
+        job_type || null,
+        reporting_manager_id || null,
+        role_id,
+      ]
+    );
+
+    await conn.commit();
+    res.status(201).json({ id: result.insertId });
+  } catch (err) {
+    await conn.rollback();
+    console.error(err);
+    if (err.code === "ER_DUP_ENTRY") {
+      res.status(409).json({ error: "User already exists" });
+    } else {
+      res.status(500).json({ error: "Server error" });
+    }
+  } finally {
+    conn.release();
+  }
+});
+
+app.put("/api/users/:id", async (req, res) => {
+  const userId = parseInt(req.params.id, 10);
+  const {
+    first_name,
+    last_name,
+    email,
+    phone,
+    bio,
+    designation,
+    job_type,
+    reporting_manager_id,
+    role_id,
+    is_active,
+  } = req.body;
+
+  const conn = await pool.getConnection();
+  try {
+    await conn.query(
+      `
+      UPDATE users SET
+        first_name = ?,
+        last_name = ?,
+        email = ?,
+        phone = ?,
+        bio = ?,
+        designation = ?,
+        job_type = ?,
+        reporting_manager_id = ?,
+        role_id = ?,
+        is_active = ?
+      WHERE id = ?
+      `,
+      [
+        first_name || null,
+        last_name || null,
+        email || null,
+        phone || null,
+        bio || null,
+        designation || null,
+        job_type || null,
+        reporting_manager_id || null,
+        role_id,
+        is_active ?? 1,
+        userId,
+      ]
+    );
+
+    res.json({ success: true });
   } finally {
     conn.release();
   }
@@ -195,16 +368,15 @@ app.put("/api/roles/:id", async (req, res) => {
   if (!name || typeof name !== "string" || !name.trim()) {
     return res.status(400).json({ error: "Role name is required" });
   }
-  const trimmedName = name.trim();
 
   if (!Array.isArray(modules)) {
     return res.status(400).json({ error: "modules must be an array" });
   }
 
-  const uniqueModules = Array.from(new Set(modules));
+  const uniqueModules = [...new Set(modules)];
   for (const m of uniqueModules) {
     if (!ALLOWED_MODULES.includes(m)) {
-      return res.status(400).json({ error: `Invalid module key: ${m}` });
+      return res.status(400).json({ error: `Invalid module: ${m}` });
     }
   }
 
@@ -212,90 +384,81 @@ app.put("/api/roles/:id", async (req, res) => {
   try {
     await conn.beginTransaction();
 
-    const [existing] = await conn.query("SELECT id FROM roles WHERE id = ?", [roleId]);
+    const [existing] = await conn.query(
+      "SELECT id FROM roles WHERE id = ?",
+      [roleId]
+    );
     if (existing.length === 0) {
       await conn.rollback();
       return res.status(404).json({ error: "Role not found" });
     }
 
-    const [nameClash] = await conn.query(
-      "SELECT id FROM roles WHERE name = ? AND id != ?",
-      [trimmedName, roleId]
+    await conn.query(
+      "UPDATE roles SET name = ? WHERE id = ?",
+      [name.trim(), roleId]
     );
-    if (nameClash.length > 0) {
-      await conn.rollback();
-      return res.status(409).json({ error: "Role name already exists" });
-    }
 
-    await conn.query("UPDATE roles SET name = ? WHERE id = ?", [trimmedName, roleId]);
-
-    await conn.query("DELETE FROM role_permissions WHERE role_id = ?", [roleId]);
+    await conn.query(
+      "DELETE FROM role_permissions WHERE role_id = ?",
+      [roleId]
+    );
 
     if (uniqueModules.length > 0) {
-      const placeholders = uniqueModules.map(() => "(?, ?)").join(", ");
+      const values = uniqueModules.map(() => "(?, ?)").join(", ");
       const params = [];
-      uniqueModules.forEach(m => {
-        params.push(roleId, m);
-      });
+      uniqueModules.forEach((m) => params.push(roleId, m));
 
       await conn.query(
-        `INSERT INTO role_permissions (role_id, permission_key) VALUES ${placeholders}`,
+        `INSERT INTO role_permissions (role_id, permission_key) VALUES ${values}`,
         params
       );
     }
 
     await conn.commit();
 
-    return res.json({
+    res.json({
       id: roleId,
-      name: trimmedName,
+      name: name.trim(),
       modules: uniqueModules,
     });
-
   } catch (err) {
-    console.error("PUT /api/roles/:id error:", err);
     await conn.rollback();
-    return res.status(500).json({ error: "Server error while updating role" });
-
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
   } finally {
     conn.release();
   }
 });
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
-
   const conn = await pool.getConnection();
   try {
     const [rows] = await conn.query(
-      `SELECT u.id, u.username, u.password, r.name AS role
-       FROM users u
-       LEFT JOIN roles r ON u.role_id = r.id
-       WHERE u.username = ?`,
+      `
+      SELECT u.id, u.username, u.password, r.name AS role
+      FROM users u
+      LEFT JOIN roles r ON u.role_id = r.id
+      WHERE u.username = ?
+      `,
       [username]
     );
 
-    if (rows.length === 0)
+    if (!rows.length || rows[0].password !== password) {
       return res.status(401).json({ error: "Invalid username or password" });
+    }
 
-    const user = rows[0];
-
-    if (user.password !== password)
-      return res.status(401).json({ error: "Invalid username or password" });
-
-    return res.json({
+    res.json({
       message: "Login successful",
       user: {
-        id: user.id,
-        username: user.username,
-        role: user.role,
+        id: rows[0].id,
+        username: rows[0].username,
+        role: rows[0].role,
       },
     });
-
   } finally {
     conn.release();
   }
 });
-
 setupDatabase()
   .then(() => {
     app.listen(PORT, () => {
@@ -303,7 +466,7 @@ setupDatabase()
       console.log("Allowed modules:", ALLOWED_MODULES.join(", "));
     });
   })
-  .catch(err => {
+  .catch((err) => {
     console.error("Setup error:", err);
     process.exit(1);
   });
