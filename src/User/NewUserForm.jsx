@@ -25,24 +25,31 @@ const NewUserForm = ({ onClose, onSuccess }) => {
   const [profileImage, setProfileImage] = useState(null);
 
   /* ==========================
-     FETCH ROLES & USERS
+     FETCH ROLES & USERS (FIXED)
   ========================== */
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchRoles = async () => {
       try {
-        const [rolesRes, usersRes] = await Promise.all([
-          axios.get(`${API}/api/roles`),
-          axios.get(`${API}/api/users`),
-        ]);
-
-        setRoles(rolesRes.data || []);
-        setManagers(usersRes.data || []);
+        const res = await axios.get(`${API}/api/roles`);
+        setRoles(res.data || []);
       } catch (err) {
-        setError("Failed to load roles or users");
+        console.error("Roles fetch failed:", err);
+        setError("Failed to load roles");
       }
     };
 
-    fetchData();
+    const fetchUsers = async () => {
+      try {
+        const res = await axios.get(`${API}/api/users`);
+        setManagers(res.data || []);
+      } catch (err) {
+        console.error("Users fetch failed:", err);
+        setError("Failed to load users");
+      }
+    };
+
+    fetchRoles();
+    fetchUsers();
   }, []);
 
   /* ==========================
@@ -60,7 +67,6 @@ const NewUserForm = ({ onClose, onSuccess }) => {
     e.preventDefault();
     setError(null);
 
-    // Mandatory fields (as per your rule)
     const requiredFields = [
       "first_name",
       "last_name",
@@ -103,6 +109,7 @@ const NewUserForm = ({ onClose, onSuccess }) => {
       if (onSuccess) onSuccess();
       onClose();
     } catch (err) {
+      console.error("Create user failed:", err);
       setLoading(false);
       setError(err?.response?.data?.error || "Failed to create user");
     }
@@ -209,7 +216,7 @@ const NewUserForm = ({ onClose, onSuccess }) => {
         />
       </div>
 
-      {/* PROFILE IMAGE (OPTIONAL) */}
+      {/* PROFILE IMAGE */}
       <div>
         <label className="block text-sm text-slate-600 mb-1">
           Profile Image (Optional)
@@ -221,7 +228,7 @@ const NewUserForm = ({ onClose, onSuccess }) => {
         />
       </div>
 
-      {/* PROFILE SUMMARY (OPTIONAL) */}
+      {/* PROFILE SUMMARY */}
       <textarea
         name="bio"
         placeholder="Profile Summary (Optional)"

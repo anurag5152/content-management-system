@@ -271,6 +271,32 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
+app.get("/api/users/managers", async (req, res) => {
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.query(`
+      SELECT
+        id,
+        COALESCE(
+          CONCAT_WS(' ', first_name, last_name),
+          email,
+          username
+        ) AS label
+      FROM users
+      WHERE is_active = 1
+      ORDER BY id DESC
+    `);
+
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to load managers" });
+  } finally {
+    conn.release();
+  }
+});
+
+
 app.post("/api/users",upload.single("profile_image"), async (req, res) => {
   const profileImagePath = req.file
   ? `uploads/users/${req.file.filename}`
