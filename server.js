@@ -129,7 +129,10 @@ async function setupDatabase() {
       "ALTER TABLE users ADD COLUMN is_active TINYINT(1) DEFAULT 1"
     );
 
-
+    await addColumnIfMissing(
+      "reporting_manager_id",
+      "ALTER TABLE users ADD COLUMN reporting_manager_id INT"
+    );
 
     await addColumnIfMissing(
       "designation",
@@ -396,7 +399,7 @@ app.post("/api/users", upload.single("profile_image"), async (req, res) => {
       INSERT INTO users
       (username, password, first_name, last_name, email, phone,profile_image, bio,
        designation, job_type, reporting_manager_id, role_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         username || email,
