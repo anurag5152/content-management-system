@@ -3,53 +3,55 @@ import axios from "axios";
 
 const API = process.env.REACT_APP_API_URL || "http://localhost:4000";
 
-const NewUserForm = ({ onClose, onSuccess }) => {
+/**
+ * Props:
+ * - onClose(): close drawer
+ * - onSuccess(): refetch users list
+ * - user: existing user object (ONLY for edit, null for create)
+ */
+const NewUserForm = ({ onClose, onSuccess, user = null }) => {
+  const isEdit = Boolean(user);
+
   const [roles, setRoles] = useState([]);
   const [managers, setManagers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const [form, setForm] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-    phone: "",
+    first_name: user?.first_name || "",
+    last_name: user?.last_name || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
     password: "",
-    role_id: "",
-    reporting_manager_id: "",
-    designation: "",
-    job_type: "",
-    bio: "",
+    role_id: user?.role_id || "",
+    reporting_manager_id: user?.reporting_manager_id || "",
+    designation: user?.designation || "",
+    job_type: user?.job_type || "",
+    bio: user?.bio || "",
   });
 
   const [profileImage, setProfileImage] = useState(null);
 
   /* ==========================
-     FETCH ROLES & USERS (FIXED)
+     FETCH ROLES & MANAGERS
   ========================== */
   useEffect(() => {
-    const fetchRoles = async () => {
+    const loadData = async () => {
       try {
-        const res = await axios.get(`${API}/api/roles`);
-        setRoles(res.data || []);
+        const [rolesRes, managersRes] = await Promise.all([
+          axios.get(`${API}/api/roles`),
+          axios.get(`${API}/api/users/managers`),
+        ]);
+
+        setRoles(rolesRes.data || []);
+        setManagers(managersRes.data || []);
       } catch (err) {
-        console.error("Roles fetch failed:", err);
-        setError("Failed to load roles");
+        console.error(err);
+        setError("Failed to load roles or managers");
       }
     };
 
-    const fetchManagers  = async () => {
-      try {
-        const res = await axios.get(`${API}/api/users/managers`);
-        setManagers(res.data || []);
-      } catch (err) {
-        console.error("Users fetch failed:", err);
-        setError("Failed to load users");
-      }
-    };
-
-    fetchRoles();
-    fetchManagers();
+    loadData();
   }, []);
 
   /* ==========================
@@ -67,17 +69,20 @@ const NewUserForm = ({ onClose, onSuccess }) => {
     e.preventDefault();
     setError(null);
 
+    // Required fields
     const requiredFields = [
       "first_name",
       "last_name",
       "email",
       "phone",
-      "password",
       "role_id",
       "reporting_manager_id",
       "designation",
       "job_type",
     ];
+
+    // Password required only when creating
+    if (!isEdit) requiredFields.push("password");
 
     for (const field of requiredFields) {
       if (!form[field]) {
@@ -89,34 +94,57 @@ const NewUserForm = ({ onClose, onSuccess }) => {
     try {
       setLoading(true);
 
-      const fd = new FormData();
-      fd.append("username", form.email);
+      if (isEdit) {
+        /* ========= EDIT USER ========= */
+        await axios.put(`${API}/api/users/${user.id}`, {
+          first_name: form.first_name,
+          last_name: form.last_name,
+          email: form.email,
+          phone: form.phone,
+          bio: form.bio || null,
+          designation: form.designation,
+          job_type: form.job_type,
+          reporting_manager_id: form.reporting_manager_id,
+          role_id: form.role_id,
+          is_active: 1,
+        });
+      } else {
+        /* ========= CREATE USER ========= */
+        const fd = new FormData();
 
-      Object.entries(form).forEach(([key, value]) => {
-        fd.append(key, value);
-      });
+        fd.append("username", form.email); // backend rule
+        fd.append("password", form.password);
+        fd.append("first_name", form.first_name);
+        fd.append("last_name", form.last_name);
+        fd.append("email", form.email);
+        fd.append("phone", form.phone);
+        fd.append("bio", form.bio || "");
+        fd.append("designation", form.designation);
+        fd.append("job_type", form.job_type);
+        fd.append("reporting_manager_id", form.reporting_manager_id);
+        fd.append("role_id", form.role_id);
 
-      if (profileImage) {
-        fd.append("profile_image", profileImage);
+        if (profileImage) {
+          fd.append("profile_image", profileImage);
+        }
+
+        await axios.post(`${API}/api/users`, fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
       }
 
-      await axios.post(`${API}/api/users`, fd, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
       setLoading(false);
-
-      if (onSuccess) onSuccess();
+      onSuccess?.();
       onClose();
     } catch (err) {
-      console.error("Create user failed:", err);
+      console.error(err);
       setLoading(false);
-      setError(err?.response?.data?.error || "Failed to create user");
+      setError(err?.response?.data?.error || "Operation failed");
     }
   };
 
   /* ==========================
-     UI (DRAWER CONTENT ONLY)
+     UI
   ========================== */
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -157,15 +185,17 @@ const NewUserForm = ({ onClose, onSuccess }) => {
         />
       </div>
 
-      {/* PASSWORD */}
-      <input
-        name="password"
-        type="password"
-        placeholder="Password *"
-        className="border p-2 rounded w-full"
-        value={form.password}
-        onChange={handleChange}
-      />
+      {/* PASSWORD (CREATE ONLY) */}
+      {!isEdit && (
+        <input
+          name="password"
+          type="password"
+          placeholder="Password *"
+          className="border p-2 rounded w-full"
+          value={form.password}
+          onChange={handleChange}
+        />
+      )}
 
       {/* ROLE & MANAGER */}
       <div className="grid grid-cols-2 gap-4">
@@ -192,7 +222,7 @@ const NewUserForm = ({ onClose, onSuccess }) => {
           <option value="">Reporting Manager *</option>
           {managers.map((u) => (
             <option key={u.id} value={u.id}>
-              {u.name || u.email}
+              {u.name}
             </option>
           ))}
         </select>
@@ -216,19 +246,21 @@ const NewUserForm = ({ onClose, onSuccess }) => {
         />
       </div>
 
-      {/* PROFILE IMAGE */}
-      <div>
-        <label className="block text-sm text-slate-600 mb-1">
-          Profile Image (Optional)
-        </label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setProfileImage(e.target.files[0])}
-        />
-      </div>
+      {/* PROFILE IMAGE (CREATE ONLY) */}
+      {!isEdit && (
+        <div>
+          <label className="block text-sm text-slate-600 mb-1">
+            Profile Image (Optional)
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setProfileImage(e.target.files[0])}
+          />
+        </div>
+      )}
 
-      {/* PROFILE SUMMARY */}
+      {/* BIO */}
       <textarea
         name="bio"
         placeholder="Profile Summary (Optional)"
@@ -245,7 +277,7 @@ const NewUserForm = ({ onClose, onSuccess }) => {
         <button
           type="button"
           onClick={onClose}
-          className="px-4 py-2 text-slate-600 hover:text-slate-800"
+          className="px-4 py-2 text-slate-600"
         >
           Cancel
         </button>
@@ -258,7 +290,7 @@ const NewUserForm = ({ onClose, onSuccess }) => {
               : "bg-[#243874] hover:bg-[#1f3160]"
           }`}
         >
-          {loading ? "Saving..." : "Save"}
+          {loading ? "Saving..." : isEdit ? "Update" : "Save"}
         </button>
       </div>
     </form>
