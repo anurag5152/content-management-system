@@ -15,6 +15,7 @@ const NewUserForm = ({ onClose, onSuccess, user = null }) => {
   const [roles, setRoles] = useState([]);
   const [managers, setManagers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingUser, setLoadingUser] = useState(false);
   const [error, setError] = useState(null);
 
   const [form, setForm] = useState({
@@ -31,6 +32,39 @@ const NewUserForm = ({ onClose, onSuccess, user = null }) => {
   });
 
   const [profileImage, setProfileImage] = useState(null);
+
+  // When editing, fetch full user details (list view returns limited fields)
+  useEffect(() => {
+    if (!isEdit) return;
+
+    const loadUser = async () => {
+      try {
+        setLoadingUser(true);
+        const res = await axios.get(`${API}/api/users/${user.id}`);
+        const u = res.data || {};
+
+        setForm((prev) => ({
+          ...prev,
+          first_name: u.first_name || "",
+          last_name: u.last_name || "",
+          email: u.email || "",
+          phone: u.phone || "",
+          role_id: u.role_id || "",
+          reporting_manager_id: u.reporting_manager_id || "",
+          designation: u.designation || "",
+          job_type: u.job_type || "",
+          bio: u.bio || "",
+        }));
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load user details");
+      } finally {
+        setLoadingUser(false);
+      }
+    };
+
+    loadUser();
+  }, [isEdit, user?.id]);
 
   /* ==========================
      FETCH ROLES & MANAGERS
@@ -283,14 +317,14 @@ const NewUserForm = ({ onClose, onSuccess, user = null }) => {
         </button>
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || loadingUser}
           className={`px-6 py-2 rounded text-white ${
-            loading
+            loading || loadingUser
               ? "bg-slate-400"
               : "bg-[#243874] hover:bg-[#1f3160]"
           }`}
         >
-          {loading ? "Saving..." : isEdit ? "Update" : "Save"}
+          {loading || loadingUser ? (loading ? "Saving..." : "Loading...") : isEdit ? "Update" : "Save"}
         </button>
       </div>
     </form>

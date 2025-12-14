@@ -364,6 +364,47 @@ app.get("/api/users/managers", async (req, res) => {
   }
 });
 
+app.get("/api/users/:id", async (req, res) => {
+  const userId = parseInt(req.params.id, 10);
+  if (!userId || isNaN(userId)) {
+    return res.status(400).json({ error: "Invalid user id" });
+  }
+
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.query(
+      `
+      SELECT
+        id,
+        username,
+        first_name,
+        last_name,
+        email,
+        phone,
+        profile_image,
+        bio,
+        designation,
+        job_type,
+        reporting_manager_id,
+        role_id,
+        is_active
+      FROM users
+      WHERE id = ?
+    `,
+      [userId]
+    );
+
+    if (!rows.length) return res.status(404).json({ error: "User not found" });
+
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  } finally {
+    conn.release();
+  }
+});
+
 
 app.post("/api/users", upload.single("profile_image"), async (req, res) => {
   const profileImagePath = req.file
