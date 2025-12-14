@@ -2,10 +2,14 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql2/promise");
+const path = require("path");
+const multer = require("multer");
+
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "src/uploads")));
 const PORT = process.env.PORT || 4000;
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
@@ -27,6 +31,30 @@ const ALLOWED_MODULES = [
   "user_access_management",
 ];
 
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "src/uploads/users"));
+  },
+  filename: function (req, file, cb) {
+    const uniqueName =
+      Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname);
+    cb(null, uniqueName + ext);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype.startsWith("image/")) {
+      cb(new Error("Only image files allowed"), false);
+    } else {
+      cb(null, true);
+    }
+  },
+});
+
 async function setupDatabase() {
   const conn = await pool.getConnection();
   try {
@@ -46,6 +74,7 @@ async function setupDatabase() {
         last_name VARCHAR(100),
         email VARCHAR(150) UNIQUE,
         phone VARCHAR(30) UNIQUE,
+        profile_image VARCHAR(255),
         bio TEXT,
         designation VARCHAR(100),
         job_type VARCHAR(100),
@@ -242,7 +271,11 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
-app.post("/api/users", async (req, res) => {
+app.post("/api/users",upload.single("profile_image"), async (req, res) => {
+  const profileImagePath = req.file
+  ? `uploads/users/${req.file.filename}`
+  : null;
+
   const {
     username,
     password,
@@ -270,7 +303,7 @@ app.post("/api/users", async (req, res) => {
     const [result] = await conn.query(
       `
       INSERT INTO users
-      (username, password, first_name, last_name, email, phone, bio,
+      (username, password, first_name, last_name, email, phone,profile_image, bio,
        designation, job_type, reporting_manager_id, role_id)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
@@ -281,6 +314,7 @@ app.post("/api/users", async (req, res) => {
         last_name || null,
         email || null,
         phone || null,
+        profileImagePath,
         bio || null,
         designation || null,
         job_type || null,

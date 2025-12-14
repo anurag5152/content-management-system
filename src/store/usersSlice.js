@@ -3,11 +3,6 @@ import axios from "axios";
 
 const API = process.env.REACT_APP_API_URL || "http://localhost:4000";
 
-/* ===========================
-   ASYNC THUNKS
-=========================== */
-
-/* Fetch users (Admin list – A) */
 export const fetchUsers = createAsyncThunk(
   "users/fetchUsers",
   async (_, thunkAPI) => {
@@ -25,9 +20,22 @@ export const fetchUsers = createAsyncThunk(
 /* Create user (B – New User) */
 export const createUser = createAsyncThunk(
   "users/createUser",
-  async (payload, thunkAPI) => {
+  async (data, thunkAPI) => {
     try {
-      const res = await axios.post(`${API}/api/users`, payload);
+      const formData = new FormData();
+
+      Object.keys(data).forEach((key) => {
+        if (data[key] !== undefined && data[key] !== null) {
+          formData.append(key, data[key]);
+        }
+      });
+
+      const res = await axios.post(`${API}/api/users`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
       return res.data;
     } catch (err) {
       return thunkAPI.rejectWithValue(
@@ -36,6 +44,7 @@ export const createUser = createAsyncThunk(
     }
   }
 );
+
 
 /* Update user (Edit from A or B) */
 export const updateUser = createAsyncThunk(
@@ -51,10 +60,6 @@ export const updateUser = createAsyncThunk(
     }
   }
 );
-
-/* ===========================
-   SLICE
-=========================== */
 
 const usersSlice = createSlice({
   name: "users",
@@ -124,9 +129,6 @@ const usersSlice = createSlice({
 
 export const { clearUsersError } = usersSlice.actions;
 
-/* ===========================
-   SELECTORS
-=========================== */
 export const selectUsersList = (state) => state.users.list;
 export const selectUsersStatus = (state) => state.users.status;
 export const selectUsersError = (state) => state.users.error;
