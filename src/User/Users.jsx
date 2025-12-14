@@ -41,7 +41,6 @@ const Users = () => {
             </button>
           </div>
 
-          {/* TABLE (UNCHANGED) */}
           <div className="border border-slate-200 rounded-md overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-[#F8F8F8] border-b border-slate-200">
@@ -91,7 +90,6 @@ const Users = () => {
           </div>
         </div>
 
-        {/* RIGHT SIDE DRAWER */}
         <AddUserDrawer
           open={openAdd}
           onClose={() => setOpenAdd(false)}
