@@ -38,9 +38,9 @@ const NewUserForm = ({ onClose, onSuccess }) => {
       }
     };
 
-    const fetchUsers = async () => {
+    const fetchManagers  = async () => {
       try {
-        const res = await axios.get(`${API}/api/users`);
+        const res = await axios.get(`${API}/api/users/managers`);
         setManagers(res.data || []);
       } catch (err) {
         console.error("Users fetch failed:", err);
@@ -49,7 +49,7 @@ const NewUserForm = ({ onClose, onSuccess }) => {
     };
 
     fetchRoles();
-    fetchUsers();
+    fetchManagers();
   }, []);
 
   /* ==========================

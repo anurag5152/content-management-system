@@ -87,6 +87,71 @@ async function setupDatabase() {
       ) ENGINE=InnoDB;
     `);
 
+    /* ============================
+   SAFE COLUMN MIGRATIONS
+============================ */
+
+    const [columns] = await conn.query(`
+      SHOW COLUMNS FROM users
+    `);
+
+    const existingColumns = columns.map(c => c.Field);
+
+    const addColumnIfMissing = async (name, sql) => {
+      if (!existingColumns.includes(name)) {
+        console.log(`Adding column: ${name}`);
+        await conn.query(sql);
+      }
+    };
+
+    await addColumnIfMissing(
+      "first_name",
+      "ALTER TABLE users ADD COLUMN first_name VARCHAR(100)"
+    );
+
+    await addColumnIfMissing(
+      "last_name",
+      "ALTER TABLE users ADD COLUMN last_name VARCHAR(100)"
+    );
+
+    await addColumnIfMissing(
+      "email",
+      "ALTER TABLE users ADD COLUMN email VARCHAR(150) UNIQUE"
+    );
+
+    await addColumnIfMissing(
+      "phone",
+      "ALTER TABLE users ADD COLUMN phone VARCHAR(30) UNIQUE"
+    );
+
+    await addColumnIfMissing(
+      "is_active",
+      "ALTER TABLE users ADD COLUMN is_active TINYINT(1) DEFAULT 1"
+    );
+
+
+
+    await addColumnIfMissing(
+      "designation",
+      "ALTER TABLE users ADD COLUMN designation VARCHAR(100)"
+    );
+
+    await addColumnIfMissing(
+      "job_type",
+      "ALTER TABLE users ADD COLUMN job_type VARCHAR(100)"
+    );
+
+    await addColumnIfMissing(
+      "bio",
+      "ALTER TABLE users ADD COLUMN bio TEXT"
+    );
+
+    await addColumnIfMissing(
+      "profile_image",
+      "ALTER TABLE users ADD COLUMN profile_image VARCHAR(255)"
+    );
+
+
     await conn.query(`
       CREATE TABLE IF NOT EXISTS role_permissions (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -270,7 +335,6 @@ app.get("/api/users", async (req, res) => {
     conn.release();
   }
 });
-
 app.get("/api/users/managers", async (req, res) => {
   const conn = await pool.getConnection();
   try {
@@ -278,10 +342,11 @@ app.get("/api/users/managers", async (req, res) => {
       SELECT
         id,
         COALESCE(
-          CONCAT_WS(' ', first_name, last_name),
+          NULLIF(CONCAT_WS(' ', first_name, last_name), ''),
           email,
           username
-        ) AS label
+        ) AS name,
+        email
       FROM users
       WHERE is_active = 1
       ORDER BY id DESC
@@ -289,7 +354,7 @@ app.get("/api/users/managers", async (req, res) => {
 
     res.json(rows);
   } catch (err) {
-    console.error(err);
+    console.error("Managers fetch error:", err);
     res.status(500).json({ error: "Failed to load managers" });
   } finally {
     conn.release();
@@ -297,10 +362,10 @@ app.get("/api/users/managers", async (req, res) => {
 });
 
 
-app.post("/api/users",upload.single("profile_image"), async (req, res) => {
+app.post("/api/users", upload.single("profile_image"), async (req, res) => {
   const profileImagePath = req.file
-  ? `uploads/users/${req.file.filename}`
-  : null;
+    ? `uploads/users/${req.file.filename}`
+    : null;
 
   const {
     username,
