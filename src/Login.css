@@ -73,13 +73,13 @@
   color: #153060;
 }
 
-form label {
+.login-card form label {
   font-size: 14px;
   margin-top: 12px;
   display: block;
 }
 
-form input {
+.login-card form input {
   width: 100%;
   padding: 10px;
   border: 1px solid #cfd3db;
@@ -115,7 +115,6 @@ form input {
   cursor: pointer;
 }
 
-/* remember row */
 .remember {
   display: flex;
   align-items: center;

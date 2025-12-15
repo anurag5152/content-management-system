@@ -5,7 +5,6 @@ const mysql = require("mysql2/promise");
 const path = require("path");
 const multer = require("multer");
 
-
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -45,7 +44,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  limits: { fileSize: 2 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (!file.mimetype.startsWith("image/")) {
       cb(new Error("Only image files allowed"), false);
@@ -86,10 +85,6 @@ async function setupDatabase() {
         FOREIGN KEY (reporting_manager_id) REFERENCES users(id)
       ) ENGINE=InnoDB;
     `);
-
-    /* ============================
-   SAFE COLUMN MIGRATIONS
-============================ */
 
     const [columns] = await conn.query(`
       SHOW COLUMNS FROM users
