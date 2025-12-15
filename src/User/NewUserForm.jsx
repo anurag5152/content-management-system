@@ -206,6 +206,12 @@ const NewUserForm = ({ onClose, onSuccess, user = null }) => {
     if (isEdit) {
       // upload immediately when editing
       try {
+        if (!user?.id) {
+          setError("Cannot upload image: missing user id");
+          return;
+        }
+        const uploadUrl = `${API}/api/users/${user.id}/photo`;
+        console.log("Uploading to:", uploadUrl);
         setUploadingImage(true);
         const fd = new FormData();
         fd.append("profile_image", file);
@@ -214,9 +220,12 @@ const NewUserForm = ({ onClose, onSuccess, user = null }) => {
         });
         setPreviewUrl(`${API}/${res.data.profile_image}`);
         setProfileImage(null);
+        setError(null);
       } catch (err) {
         console.error(err);
-        setError("Image upload failed");
+        const status = err?.response?.status;
+        const serverMsg = err?.response?.data?.error || err?.response?.data || err?.message;
+        setError(`Image upload failed${status ? ` (${status})` : ""}: ${serverMsg}`);
       } finally {
         setUploadingImage(false);
       }
@@ -242,18 +251,17 @@ const NewUserForm = ({ onClose, onSuccess, user = null }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* PHOTO UPLOAD */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-start gap-4">
         <div className="w-20 h-20 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
-          {previewUrl ? (
-            <img src={avatarSrc} alt="avatar" className="w-full h-full object-cover" />
-          ) : (
-            <div className="text-slate-400">No Photo</div>
-          )}
+          <img src={avatarSrc} alt="avatar" className="w-full h-full object-cover" />
         </div>
-        <div>
-          <button type="button" onClick={triggerFileDialog} className="border px-3 py-1 rounded text-sm bg-white">
-            Upload New Photo
-          </button>
+        <div className="flex-1">
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={triggerFileDialog} className="border px-3 py-1 rounded text-sm bg-white">
+              Upload New Photo
+            </button>
+            {uploadingImage && <div className="text-sm text-slate-600">Uploading...</div>}
+          </div>
           <div className="text-xs text-slate-500 mt-2">At least 150x150 px recommended JPG, PNG or JPEG is allowed</div>
         </div>
         <input
@@ -263,151 +271,183 @@ const NewUserForm = ({ onClose, onSuccess, user = null }) => {
           onChange={handleImageSelect}
           className="hidden"
         />
-        {uploadingImage && <div className="text-sm text-slate-600">Uploading...</div>}
       </div>
       {/* NAME */}
-      <div className="grid grid-cols-2 gap-4">
-        <input
-          name="first_name"
-          placeholder="First Name *"
-          className="border p-2 rounded"
-          value={form.first_name}
-          onChange={handleChange}
-        />
-        <input
-          name="last_name"
-          placeholder="Last Name *"
-          className="border p-2 rounded"
-          value={form.last_name}
-          onChange={handleChange}
-        />
-      </div>
+      <div>
+        <h3 className="text-sm font-medium">Basic Info</h3>
+        <div className="grid grid-cols-2 gap-4 mt-3">
+          <div>
+            <label className="text-xs text-slate-600">First Name <span className="text-red-500">*</span></label>
+            <input
+              name="first_name"
+              placeholder=""
+              className="bg-[#F8F8F8] p-3 rounded w-full"
+              value={form.first_name}
+              onChange={handleChange}
+            />
+          </div>
 
-      {/* EMAIL & PHONE */}
-      <div className="grid grid-cols-2 gap-4">
-        <input
-          name="email"
-          type="email"
-          placeholder="Email *"
-          className="border p-2 rounded"
-          value={form.email}
-          onChange={handleChange}
-        />
-        <input
-          name="phone"
-          placeholder="Phone / WhatsApp *"
-          className="border p-2 rounded"
-          value={form.phone}
-          onChange={handleChange}
-        />
-      </div>
+          <div>
+            <label className="text-xs text-slate-600">Last Name <span className="text-red-500">*</span></label>
+            <input
+              name="last_name"
+              placeholder=""
+              className="bg-[#F8F8F8] p-3 rounded w-full"
+              value={form.last_name}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
 
-      {/* PASSWORD (CREATE ONLY) */}
-      {!isEdit && (
-        <input
-          name="password"
-          type="password"
-          placeholder="Password *"
-          className="border p-2 rounded w-full"
-          value={form.password}
-          onChange={handleChange}
-        />
-      )}
+        <div className="grid grid-cols-2 gap-4 mt-3">
+          <div>
+            <label className="text-xs text-slate-600">WhatsApp No. <span className="text-red-500">*</span></label>
+            <input
+              name="phone"
+              placeholder=""
+              className="bg-[#F8F8F8] p-3 rounded w-full"
+              value={form.phone}
+              onChange={handleChange}
+            />
+          </div>
 
-      {/* ROLE & MANAGER */}
-      <div className="grid grid-cols-2 gap-4">
-        <select
-          name="role_id"
-          className="border p-2 rounded"
-          value={form.role_id}
-          onChange={handleChange}
-        >
-          <option value="">Select Role *</option>
-          {roles.map((r) => (
-            <option key={r.id} value={r.id}>
-              {r.name}
-            </option>
-          ))}
-        </select>
+          <div>
+            <label className="text-xs text-slate-600">Password { !isEdit && (<span className="text-red-500">*</span>)}</label>
+            {!isEdit ? (
+              <input
+                name="password"
+                type="password"
+                placeholder=""
+                className="bg-[#F8F8F8] p-3 rounded w-full"
+                value={form.password}
+                onChange={handleChange}
+              />
+            ) : (
+              <input
+                name="password-disabled"
+                disabled
+                placeholder="(unchanged)"
+                className="bg-[#F8F8F8] p-3 rounded w-full text-slate-400"
+              />
+            )}
+          </div>
+        </div>
 
-        <select
-          name="reporting_manager_id"
-          className="border p-2 rounded"
-          value={form.reporting_manager_id}
-          onChange={handleChange}
-        >
-          <option value="">Reporting Manager *</option>
-          {managers.map((u) => (
-            <option key={u.id} value={u.id}>
-              {u.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* DESIGNATION & JOB TYPE */}
-      <div className="grid grid-cols-2 gap-4">
-        <input
-          name="designation"
-          placeholder="Designation *"
-          className="border p-2 rounded"
-          value={form.designation}
-          onChange={handleChange}
-        />
-        <input
-          name="job_type"
-          placeholder="Job Type *"
-          className="border p-2 rounded"
-          value={form.job_type}
-          onChange={handleChange}
-        />
-      </div>
-
-      {/* PROFILE IMAGE (CREATE ONLY) */}
-      {!isEdit && (
-        <div>
-          <label className="block text-sm text-slate-600 mb-1">
-            Profile Image (Optional)
-          </label>
+        <div className="mt-3">
+          <label className="text-xs text-slate-600">Email Address <span className="text-red-500">*</span></label>
           <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setProfileImage(e.target.files[0])}
+            name="email"
+            type="email"
+            placeholder=""
+            className="bg-[#F8F8F8] p-3 rounded w-full"
+            value={form.email}
+            onChange={handleChange}
           />
         </div>
-      )}
+
+        <div className="mt-3">
+          <label className="text-xs text-slate-600">Profile Summary</label>
+          <textarea
+            name="bio"
+            placeholder=""
+            className="bg-[#F8F8F8] p-3 rounded w-full"
+            rows={3}
+            value={form.bio}
+            onChange={handleChange}
+          />
+        </div>
+      </div>
+
+      {/* PROFESSIONAL INFO */}
+      <div>
+        <h3 className="text-sm font-medium">Professional Info</h3>
+        <div className="grid grid-cols-2 gap-4 mt-3">
+          <div>
+            <label className="text-xs text-slate-600">Job Type <span className="text-red-500">*</span></label>
+            <input
+              name="job_type"
+              placeholder=""
+              className="bg-[#F8F8F8] p-3 rounded w-full"
+              value={form.job_type}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
+            <label className="text-xs text-slate-600">Designation <span className="text-red-500">*</span></label>
+            <input
+              name="designation"
+              placeholder=""
+              className="bg-[#F8F8F8] p-3 rounded w-full"
+              value={form.designation}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mt-3">
+          <div>
+            <label className="text-xs text-slate-600">Reporting Manager <span className="text-red-500">*</span></label>
+            <select
+              name="reporting_manager_id"
+              className="bg-[#F8F8F8] p-3 rounded w-full"
+              value={form.reporting_manager_id}
+              onChange={handleChange}
+            >
+              <option value="">Select</option>
+              {managers.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs text-slate-600">Select Role <span className="text-red-500">*</span></label>
+            <select
+              name="role_id"
+              className="bg-[#F8F8F8] p-3 rounded w-full"
+              value={form.role_id}
+              onChange={handleChange}
+            >
+              <option value="">Select</option>
+              {roles.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+
 
       {/* BIO */}
-      <textarea
+      {/* <textarea
         name="bio"
         placeholder="Profile Summary (Optional)"
         className="border p-2 rounded w-full"
         rows={3}
         value={form.bio}
         onChange={handleChange}
-      />
+      /> */}
 
       {error && <div className="text-sm text-red-600">{error}</div>}
 
       {/* ACTIONS */}
-      <div className="flex justify-end gap-3 pt-4 border-t">
-        <button
-          type="button"
-          onClick={onClose}
-          className="px-4 py-2 text-slate-600"
-        >
-          Cancel
-        </button>
+      <div className="pt-4 border-t">
         <button
           type="submit"
           disabled={loading || loadingUser}
-          className={`px-6 py-2 rounded text-white ${
+          className={`w-full px-6 py-3 rounded text-white ${
             loading || loadingUser
               ? "bg-slate-400"
               : "bg-[#243874] hover:bg-[#1f3160]"
           }`}
         >
-          {loading || loadingUser ? (loading ? "Saving..." : "Loading...") : isEdit ? "Update" : "Save"}
+          {loading || loadingUser ? (loading ? "Saving..." : "Loading...") : isEdit ? "Update" : "Submit"}
         </button>
       </div>
     </form>

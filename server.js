@@ -475,6 +475,7 @@ app.post("/api/users", upload.single("profile_image"), async (req, res) => {
 
 app.post("/api/users/:id/photo", upload.single("profile_image"), async (req, res) => {
   const userId = parseInt(req.params.id, 10);
+  console.log(`POST /api/users/${req.params.id}/photo hit`);
   if (!userId || isNaN(userId)) {
     return res.status(400).json({ error: "Invalid user id" });
   }
