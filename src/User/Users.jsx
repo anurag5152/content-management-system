@@ -49,13 +49,13 @@ const Users = () => {
 
         <div className="flex-1 bg-white p-6">
           <div className="flex items-center justify-between mb-5">
-            <h1 className="text-lg font-semibold text-[#243874]">
+            <h1 className="text-sm font-semibold text-[#243874]">
               Admin User List
             </h1>
 
             <button
               onClick={handleAddNew}
-              className="bg-[#243874] hover:bg-[#1f3160] text-white text-sm px-4 py-2 rounded"
+              className="bg-[#243874] hover:bg-[#1f3160] text-white text-sm px-2 py-1 rounded"
             >
               + New User
             </button>
@@ -65,21 +65,12 @@ const Users = () => {
             <table className="w-full text-sm">
               <thead className="bg-[#F8F8F8] border-b border-slate-200">
                 <tr>
-                  <th className="px-4 py-3 text-left font-medium ">
-                    Name
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium ">
-                    Email
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium ">
-                    Bio
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium ">
-                    Role
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium ">
-                    Action
-                  </th>
+                  <th className="px-4 py-1 text-left font-medium w-14">Id</th>
+                  <th className="px-4 py-1 text-left font-medium">User</th>
+                  <th className="px-4 py-1 text-left font-medium">Email</th>
+                  <th className="px-4 py-1 text-left font-medium">Role</th>
+                  <th className="px-4 py-1 text-left font-medium">Bio</th>
+                  <th className="px-4 py-1 text-left font-medium">Action</th>
                 </tr>
               </thead>
 
@@ -87,7 +78,7 @@ const Users = () => {
                 {status === "loading" && (
                   <tr>
                     <td
-                      colSpan={5}
+                      colSpan={6}
                       className="px-4 py-6 text-center text-slate-500"
                     >
                       Loading users...
@@ -98,7 +89,7 @@ const Users = () => {
                 {status !== "loading" && users.length === 0 && (
                   <tr>
                     <td
-                      colSpan={5}
+                      colSpan={6}
                       className="px-4 py-6 text-center text-slate-500"
                     >
                       No users found
@@ -106,24 +97,21 @@ const Users = () => {
                   </tr>
                 )}
 
-                {users.map((u) => (
+                {([...users].sort((a, b) => (a.id || 0) - (b.id || 0))).map((u) => (
                   <tr
                     key={u.id}
                     className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50"
                   >
-                    <td className="px-4 py-3">
-                      {u.name || "-"}
+                    <td className="px-4 text-sm py-1 text-slate-600">{u.id}</td>
+                    <td className="px-4 text-sm py-1">{u.name || "-"}</td>
+                    <td className="px-4 text-sm py-1">{u.email || "-"}</td>
+                    <td className="px-4 text-sm py-1">{u.role || "-"}</td>
+                    <td className="px-4 text-sm py-1 align-top">
+                      <div className="max-h-20 max-w-80 border-b-2 border-slate-200 overflow-auto bg-[#F8F8F8] p-2 text-sm text-slate-700">
+                        {u.bio || "-"}
+                      </div>
                     </td>
-                    <td className="px-4 py-3">
-                      {u.email || "-"}
-                    </td>
-                    <td className="px-4 py-3 truncate">
-                      {u.bio || "-"}
-                    </td>
-                    <td className="px-4 py-3">
-                      {u.role || "-"}
-                    </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-1">
                       <button
                         onClick={() => handleEdit(u)}
                         className="text-blue-600 hover:underline text-sm"
