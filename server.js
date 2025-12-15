@@ -473,6 +473,33 @@ app.post("/api/users", upload.single("profile_image"), async (req, res) => {
   }
 });
 
+app.post("/api/users/:id/photo", upload.single("profile_image"), async (req, res) => {
+  const userId = parseInt(req.params.id, 10);
+  if (!userId || isNaN(userId)) {
+    return res.status(400).json({ error: "Invalid user id" });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
+
+  const profileImagePath = `uploads/users/${req.file.filename}`;
+  const conn = await pool.getConnection();
+  try {
+    await conn.query(
+      `UPDATE users SET profile_image = ? WHERE id = ?`,
+      [profileImagePath, userId]
+    );
+
+    res.json({ profile_image: profileImagePath });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update profile image" });
+  } finally {
+    conn.release();
+  }
+});
+
 app.put("/api/users/:id", async (req, res) => {
   const userId = parseInt(req.params.id, 10);
   const {

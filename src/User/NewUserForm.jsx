@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 
 const API = process.env.REACT_APP_API_URL || "http://localhost:4000";
@@ -32,6 +32,8 @@ const NewUserForm = ({ onClose, onSuccess, user = null }) => {
   });
 
   const [profileImage, setProfileImage] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // When editing, fetch full user details (list view returns limited fields)
   useEffect(() => {
@@ -55,6 +57,9 @@ const NewUserForm = ({ onClose, onSuccess, user = null }) => {
           job_type: u.job_type || "",
           bio: u.bio || "",
         }));
+        if (u.profile_image) {
+          setPreviewUrl(`${API}/${u.profile_image}`);
+        }
       } catch (err) {
         console.error(err);
         setError("Failed to load user details");
@@ -142,6 +147,14 @@ const NewUserForm = ({ onClose, onSuccess, user = null }) => {
           role_id: form.role_id,
           is_active: 1,
         });
+        // If a new image was selected during edit, upload it as a separate request
+        if (profileImage) {
+          const fd = new FormData();
+          fd.append("profile_image", profileImage);
+          await axios.post(`${API}/api/users/${user.id}/photo`, fd, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+        }
       } else {
         /* ========= CREATE USER ========= */
         const fd = new FormData();
@@ -180,8 +193,78 @@ const NewUserForm = ({ onClose, onSuccess, user = null }) => {
   /* ==========================
      UI
   ========================== */
+  const fileInputRef = useRef(null);
+
+  const handleImageSelect = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    // preview locally
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+
+    if (isEdit) {
+      // upload immediately when editing
+      try {
+        setUploadingImage(true);
+        const fd = new FormData();
+        fd.append("profile_image", file);
+        const res = await axios.post(`${API}/api/users/${user.id}/photo`, fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        setPreviewUrl(`${API}/${res.data.profile_image}`);
+        setProfileImage(null);
+      } catch (err) {
+        console.error(err);
+        setError("Image upload failed");
+      } finally {
+        setUploadingImage(false);
+      }
+    } else {
+      setProfileImage(file);
+    }
+  };
+
+  const triggerFileDialog = () => {
+    if (fileInputRef.current) fileInputRef.current.click();
+  };
+
+  const avatarSrc = previewUrl || `${API}/uploads/users/default-avatar.svg`;
+
+  // cleanup blob URLs
+  useEffect(() => {
+    return () => {
+      if (previewUrl && previewUrl.startsWith && previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* PHOTO UPLOAD */}
+      <div className="flex items-center gap-4">
+        <div className="w-20 h-20 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
+          {previewUrl ? (
+            <img src={avatarSrc} alt="avatar" className="w-full h-full object-cover" />
+          ) : (
+            <div className="text-slate-400">No Photo</div>
+          )}
+        </div>
+        <div>
+          <button type="button" onClick={triggerFileDialog} className="border px-3 py-1 rounded text-sm bg-white">
+            Upload New Photo
+          </button>
+          <div className="text-xs text-slate-500 mt-2">At least 150x150 px recommended JPG, PNG or JPEG is allowed</div>
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/png, image/jpeg, image/jpg"
+          onChange={handleImageSelect}
+          className="hidden"
+        />
+        {uploadingImage && <div className="text-sm text-slate-600">Uploading...</div>}
+      </div>
       {/* NAME */}
       <div className="grid grid-cols-2 gap-4">
         <input
