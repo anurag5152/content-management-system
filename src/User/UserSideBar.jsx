@@ -15,7 +15,7 @@ const UserSidebar = () => {
     },
     {
       id: "users",
-      to: "/dashboard/users/list",
+      to: "/User",
       label: "Users",
 
     },

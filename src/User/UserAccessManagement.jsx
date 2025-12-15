@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import UserSidebar from "./UserSideBar.jsx";
 import Sidebar from "../components/Sidebar.jsx";
 import AddNewAccessModal from "./AddNewAccessModal.jsx";
@@ -58,6 +58,8 @@ const UserAccessManagement = () => {
 };
 
 const AccessManagementView = ({ roles = [], onCreate, onEdit }) => {
+  const [searchTerm, setSearchTerm] = useState("");
+
   const labelMap = MODULES.reduce((acc, m) => {
     acc[m.id] = m.label;
     return acc;
@@ -69,6 +71,19 @@ const AccessManagementView = ({ roles = [], onCreate, onEdit }) => {
     return modules.map((m) => labelMap[m] || m).join(", ");
   };
 
+  const filteredRoles = useMemo(() => {
+    const lowerCaseSearch = searchTerm.toLowerCase().trim();
+    if (!lowerCaseSearch) {
+      return roles;
+    }
+
+    return roles.filter((role) => {
+      const idMatch = String(role.id).toLowerCase().includes(lowerCaseSearch);
+      const nameMatch = role.name.toLowerCase().includes(lowerCaseSearch);
+      return idMatch || nameMatch;
+    });
+  }, [roles, searchTerm]);
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-4">
@@ -78,8 +93,10 @@ const AccessManagementView = ({ roles = [], onCreate, onEdit }) => {
           <div className="relative bg-[#EAEAEA]">
             <input
               type="text"
-              placeholder="Search by Text or ID"
+              placeholder="Search by ID or Role"
               className="border border-slate-300 rounded-md pl-3 pr-8 py-1.5 text-xs w-64"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
             <span className="absolute right-2 top-1.5 text-slate-400 text-xs">🔍</span>
           </div>
@@ -105,14 +122,14 @@ const AccessManagementView = ({ roles = [], onCreate, onEdit }) => {
           </thead>
 
           <tbody>
-            {roles.length === 0 ? (
+            {filteredRoles.length === 0 ? (
               <tr>
                 <td colSpan="4" className="px-3 py-8 text-center text-slate-500">
-                  No roles yet
+                  {searchTerm ? `No roles found for "${searchTerm}"` : "No roles yet"}
                 </td>
               </tr>
             ) : (
-              roles.map((r) => (
+              filteredRoles.map((r) => (
                 <tr key={r.id} className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50">
                   <td className="px-3 py-2 text-sky-700 font-medium">{r.id}</td>
                   <td className="px-3 py-2">{r.name}</td>
