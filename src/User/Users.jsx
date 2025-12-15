@@ -17,23 +17,17 @@ const Users = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
 
-  /* ==========================
-     FETCH USERS
-  ========================== */
   useEffect(() => {
     dispatch(fetchUsers());
   }, [dispatch]);
 
-  /* ==========================
-     HANDLERS
-  ========================== */
   const handleAddNew = () => {
-    setEditingUser(null); // CREATE MODE
+    setEditingUser(null);
     setDrawerOpen(true);
   };
 
   const handleEdit = (user) => {
-    setEditingUser(user); // EDIT MODE
+    setEditingUser(user); 
     setDrawerOpen(true);
   };
 
@@ -43,12 +37,9 @@ const Users = () => {
   };
 
   const handleSuccess = () => {
-    dispatch(fetchUsers()); // refresh list after add/edit
+    dispatch(fetchUsers()); 
   };
 
-  /* ==========================
-     UI
-  ========================== */
   return (
     <div className="min-h-screen flex bg-slate-100">
       <Sidebar />
@@ -58,8 +49,8 @@ const Users = () => {
 
         <div className="flex-1 bg-white p-6">
           <div className="flex items-center justify-between mb-5">
-            <h1 className="text-lg font-semibold text-slate-800">
-              Users
+            <h1 className="text-lg font-semibold text-[#243874]">
+              Admin User List
             </h1>
 
             <button
@@ -74,19 +65,19 @@ const Users = () => {
             <table className="w-full text-sm">
               <thead className="bg-[#F8F8F8] border-b border-slate-200">
                 <tr>
-                  <th className="px-4 py-3 text-left font-medium text-slate-600">
+                  <th className="px-4 py-3 text-left font-medium ">
                     Name
                   </th>
-                  <th className="px-4 py-3 text-left font-medium text-slate-600">
+                  <th className="px-4 py-3 text-left font-medium ">
                     Email
                   </th>
-                  <th className="px-4 py-3 text-left font-medium text-slate-600">
+                  <th className="px-4 py-3 text-left font-medium ">
                     Bio
                   </th>
-                  <th className="px-4 py-3 text-left font-medium text-slate-600">
+                  <th className="px-4 py-3 text-left font-medium ">
                     Role
                   </th>
-                  <th className="px-4 py-3 text-left font-medium text-slate-600">
+                  <th className="px-4 py-3 text-left font-medium ">
                     Action
                   </th>
                 </tr>
@@ -118,7 +109,7 @@ const Users = () => {
                 {users.map((u) => (
                   <tr
                     key={u.id}
-                    className="border-b hover:bg-slate-50"
+                    className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50"
                   >
                     <td className="px-4 py-3">
                       {u.name || "-"}
@@ -146,13 +137,11 @@ const Users = () => {
             </table>
           </div>
         </div>
-
-        {/* RIGHT DRAWER */}
         <AddUserDrawer
           open={drawerOpen}
           onClose={handleCloseDrawer}
           onSuccess={handleSuccess}
-          user={editingUser}   // null = add | object = edit
+          user={editingUser} 
         />
       </main>
     </div>
