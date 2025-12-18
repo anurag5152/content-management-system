@@ -59,7 +59,7 @@ const Sidebar = () => {
         </NavLink>
 
         <NavLink
-          to="/Dashboard/story"
+          to="/AddStory"
           className={({ isActive }) =>
             `w-full flex flex-col items-center px-3 py-2 rounded-md ${isActive
               ? "bg-[#313338] text-white"
