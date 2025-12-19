@@ -13,6 +13,17 @@ const AddStory = () => {
     const [highlights, setHighlights] = useState("");
     const [pdfFile, setPdfFile] = useState(null);
 
+    const [storyUrl, setStoryUrl] = useState("");
+    const [shortTitle, setShortTitle] = useState("");
+    const [articleTitle, setArticleTitle] = useState("");
+    const [slugIntro, setSlugIntro] = useState("");
+    const [topicTags, setTopicTags] = useState("");
+    const [district, setDistrict] = useState("");
+    const [mandal, setMandal] = useState("");
+    const [author, setAuthor] = useState("");
+    const [status, setStatus] = useState("draft");
+    const [schedulePost, setSchedulePost] = useState(false);
+
 
     const descRef = useRef(null);
     const highlightRef = useRef(null);
@@ -46,6 +57,54 @@ const AddStory = () => {
         }
     };
 
+    const handleSubmit = async (submitStatus = "draft") => {
+        try {
+            const payload = {
+                author: author || null,
+                user_id: null,
+                story_url: storyUrl,
+                short_title: shortTitle,
+                article_title: articleTitle,
+                slug_intro: slugIntro,
+                topic_tags: topicTags,
+                description,
+                district,
+                mandal,
+                status: submitStatus || status,
+            };
+
+            await axios.post(`${API}/api/stories`, payload);
+
+            setStoryUrl("");
+            setShortTitle("");
+            setArticleTitle("");
+            setSlugIntro("");
+            setTopicTags("");
+            setDescription("");
+            setHighlights("");
+            setDistrict("");
+            setMandal("");
+            setAuthor("");
+            setStatus("draft");
+            setImagePreview(null);
+            setPdfFile(null);
+            setSchedulePost(false);
+
+            if (descRef.current) descRef.current.innerText = "";
+            if (highlightRef.current) highlightRef.current.innerText = "";
+
+            const imgInput = document.getElementById("imgUpload");
+            if (imgInput) imgInput.value = "";
+            const pdfInput = document.getElementById("pdfUpload");
+            if (pdfInput) pdfInput.value = "";
+
+            alert("Story saved");
+        } catch (err) {
+            console.error(err);
+            alert("Failed to save story");
+        }
+    }; 
+
     const handleDrop = (e) => {
         e.preventDefault();
         const file = e.dataTransfer.files[0];
@@ -67,14 +126,14 @@ const AddStory = () => {
                         </h1>
 
                         <div className="flex items-center gap-3">
-                            <button className="bg-slate-200 hover:bg-slate-300 text-slate-800 text-sm font-medium px-4 py-2 rounded-md">
+                            <button onClick={() => handleSubmit('draft')} className="bg-slate-200 hover:bg-slate-300 text-slate-800 text-sm font-medium px-4 py-2 rounded-md">
                                 Save as Draft
                             </button>
 
-                            <button className="bg-[#243874] hover:bg-blue-700 text-white text-sm font-medium px-6 py-2 rounded-md">
+                            <button onClick={() => handleSubmit(schedulePost ? 'published' : 'not_published')} className="bg-[#243874] hover:bg-blue-700 text-white text-sm font-medium px-6 py-2 rounded-md">
                                 Submit
                             </button>
-                        </div>
+                        </div> 
                     </div>
 
                     <div className="flex items-center gap-5 mb-5">
@@ -103,6 +162,8 @@ const AddStory = () => {
                             <input
                                 type="text"
                                 placeholder="https://"
+                                value={storyUrl}
+                                onChange={(e) => setStoryUrl(e.target.value)}
                                 className="w-full border border-slate-300 bg-white rounded px-3 py-2 text-xs mt-1"
                             />
                         </div>
@@ -113,6 +174,8 @@ const AddStory = () => {
                             </label>
                             <input
                                 type="text"
+                                value={shortTitle}
+                                onChange={(e) => setShortTitle(e.target.value)}
                                 className="w-full border border-slate-300 bg-white rounded px-3 py-2 text-xs mt-1"
                             />
                         </div>
@@ -123,9 +186,11 @@ const AddStory = () => {
                             </label>
                             <input
                                 type="text"
+                                value={articleTitle}
+                                onChange={(e) => setArticleTitle(e.target.value)}
                                 className="w-full border border-slate-300 bg-white rounded px-3 py-2 text-xs mt-1"
                             />
-                        </div>
+                        </div> 
 
                         <div className="col-span-12">
                             <label className="text-xs text-slate-700">
@@ -133,6 +198,8 @@ const AddStory = () => {
                             </label>
                             <input
                                 type="text"
+                                value={slugIntro}
+                                onChange={(e) => setSlugIntro(e.target.value)}
                                 className="w-full border border-slate-300 bg-white rounded px-3 py-2 text-xs mt-1"
                             />
                         </div>
@@ -144,6 +211,8 @@ const AddStory = () => {
                             </label>
                             <input
                                 type="text"
+                                value={topicTags}
+                                onChange={(e) => setTopicTags(e.target.value)}
                                 className="w-full border border-slate-300 bg-white rounded px-3 py-2 text-xs mt-1"
                             />
                         </div>
@@ -271,6 +340,8 @@ const AddStory = () => {
                                 <label className="text-xs text-slate-700">Author</label>
                                 <input
                                     type="text"
+                                    value={author}
+                                    onChange={(e) => setAuthor(e.target.value)}
                                     className="w-full border border-slate-300 bg-white rounded px-3 py-2 text-xs mt-1"
                                 />
                             </div>
@@ -328,7 +399,11 @@ const AddStory = () => {
                                 </label>
 
                                 <label className="flex items-center gap-2">
-                                    <input type="checkbox" />
+                                    <input
+                                        type="checkbox"
+                                        checked={schedulePost}
+                                        onChange={(e) => setSchedulePost(e.target.checked)}
+                                    />
                                     Schedule Post
                                 </label>
                             </div>

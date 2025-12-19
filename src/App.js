@@ -7,6 +7,7 @@ import UserAccessManagement from "./User/UserAccessManagement";
 import Users from "../src/User/Users";
 import User from "./User/User";
 import AddStory from '../src/story/AddStory';
+import ViewStory from '../src/story/ViewStory';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
       <Route path="/Users" element={<Users />} />
       <Route path="/User" element={<User />} />
       <Route path="/AddStory" element={<AddStory />} />
+      <Route path="/ViewStory" element={<ViewStory />} />
     </Routes>
   );
 }

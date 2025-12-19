@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 const StorySidebar = () => {
   const items = [
     { label: "Add Story", to: "/AddStory" },
-    { label: "View Story", to: "/Dashboard/story/view" },
+    { label: "View Story", to: "/ViewStory" },
     { label: "View Schedule Story", to: "/Dashboard/story/scheduled" },
     { label: "E-Paper PDF List", to: "/Dashboard/story/epaper" },
     { label: "Create Poll", to: "/Dashboard/story/poll" },

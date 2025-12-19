@@ -54,6 +54,29 @@ const upload = multer({
   },
 });
 
+const storyStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "src/uploads/story"));
+  },
+  filename: function (req, file, cb) {
+    const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname);
+    cb(null, uniqueName + ext);
+  },
+});
+
+const uploadStory = multer({
+  storage: storyStorage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype.startsWith("image/")) {
+      cb(new Error("Only image files allowed"), false);
+    } else {
+      cb(null, true);
+    }
+  },
+});
+
 async function setupDatabase() {
   const conn = await pool.getConnection();
   try {
@@ -196,6 +219,27 @@ async function setupDatabase() {
     } else {
       console.log("Admin user already exists.");
     }
+
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS stories (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NULL,
+        author VARCHAR(150) NULL,
+        story_url TEXT,
+        short_title TEXT,
+        article_title TEXT,
+        slug_intro TEXT,
+        topic_tags TEXT,
+        description LONGTEXT,
+        district VARCHAR(255),
+        mandal VARCHAR(255),
+        status ENUM('draft','published','not_published') DEFAULT 'draft',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+      ) ENGINE=InnoDB;
+    `);
+
   } finally {
     conn.release();
   }
@@ -491,6 +535,125 @@ app.post("/api/users/:id/photo", upload.single("profile_image"), async (req, res
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to update profile image" });
+  } finally {
+    conn.release();
+  }
+});
+
+app.post("/api/story/upload-image", uploadStory.single("image"), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+  const pathUrl = `uploads/story/${req.file.filename}`;
+  res.json({ path: pathUrl });
+});
+
+app.post("/api/stories", async (req, res) => {
+  const {
+    user_id,
+    author,
+    story_url,
+    short_title,
+    article_title,
+    slug_intro,
+    topic_tags,
+    description,
+    district,
+    mandal,
+    status,
+  } = req.body;
+
+  if (!story_url || !short_title || !article_title) {
+    return res.status(400).json({ error: "story_url, short_title and article_title are required" });
+  }
+
+  const conn = await pool.getConnection();
+  try {
+    const [result] = await conn.query(
+      `INSERT INTO stories
+      (user_id, author, story_url, short_title, article_title, slug_intro, topic_tags, description, district, mandal, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        user_id || null,
+        author || null,
+        story_url,
+        short_title,
+        article_title,
+        slug_intro || null,
+        topic_tags || null,
+        description || null,
+        district || null,
+        mandal || null,
+        status || "draft",
+      ]
+    );
+
+    res.status(201).json({ id: result.insertId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  } finally {
+    conn.release();
+  }
+});
+
+// List stories
+app.get("/api/stories", async (req, res) => {
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.query(
+      `SELECT * FROM stories ORDER BY created_at DESC`
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  } finally {
+    conn.release();
+  }
+});
+
+app.get("/api/stories/:id", async (req, res) => {
+  const storyId = parseInt(req.params.id, 10);
+  if (!storyId || isNaN(storyId)) return res.status(400).json({ error: "Invalid story id" });
+
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.query("SELECT * FROM stories WHERE id = ?", [storyId]);
+    if (!rows.length) return res.status(404).json({ error: "Story not found" });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  } finally {
+    conn.release();
+  }
+});
+
+app.put("/api/stories/:id", async (req, res) => {
+  const storyId = parseInt(req.params.id, 10);
+  if (!storyId || isNaN(storyId)) return res.status(400).json({ error: "Invalid story id" });
+
+  const allowed = ["story_url", "short_title", "article_title", "status"];
+  const updates = {};
+  for (const k of allowed) {
+    if (k in req.body) updates[k] = req.body[k];
+  }
+  if (!Object.keys(updates).length) return res.status(400).json({ error: "No valid fields to update" });
+
+  const fields = Object.keys(updates).map(k => `${k} = ?`).join(", ");
+  const params = Object.keys(updates).map(k => updates[k]);
+  params.push(storyId);
+
+  const conn = await pool.getConnection();
+  try {
+    const [existing] = await conn.query("SELECT id FROM stories WHERE id = ?", [storyId]);
+    if (!existing.length) return res.status(404).json({ error: "Story not found" });
+
+    await conn.query(`UPDATE stories SET ${fields} WHERE id = ?`, params);
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
   } finally {
     conn.release();
   }
