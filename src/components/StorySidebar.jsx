@@ -4,9 +4,9 @@ import { selectModules } from "../store/modulesSlice";
 
 const StorySidebar = () => {
   const modulesFromStore = useSelector(selectModules);
-  const modules = (modulesFromStore && modulesFromStore.length > 0)
-    ? modulesFromStore
-    : JSON.parse(localStorage.getItem("cms_modules") || sessionStorage.getItem("cms_modules") || "[]");
+  const fallbackModules = JSON.parse(localStorage.getItem("cms_modules") || sessionStorage.getItem("cms_modules") || "[]");
+  console.log("StorySidebar - modulesFromStore:", modulesFromStore, "fallbackModules:", fallbackModules);
+  const modules = (modulesFromStore && modulesFromStore.length > 0) ? modulesFromStore : fallbackModules; 
 
   const items = [
     { label: "Add Story", to: "/AddStory", key: "add_story" },

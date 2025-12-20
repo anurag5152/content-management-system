@@ -1,4 +1,6 @@
 import { useEffect, useState, useRef } from "react";
+import { useDispatch } from "react-redux";
+import { fetchModulesByRole } from "../store/modulesSlice";
 import axios from "axios";
 const API = process.env.REACT_APP_API_URL || "http://localhost:4000";
 const NewUserForm = ({ onClose, onSuccess, user = null }) => {
@@ -85,6 +87,8 @@ const NewUserForm = ({ onClose, onSuccess, user = null }) => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const dispatch = useDispatch();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -132,6 +136,36 @@ const NewUserForm = ({ onClose, onSuccess, user = null }) => {
             headers: { "Content-Type": "multipart/form-data" },
           });
         }
+
+        // If we edited the currently logged-in user, update their stored role and modules immediately
+        try {
+          const stored = localStorage.getItem("cms_user") || sessionStorage.getItem("cms_user");
+          if (stored) {
+            const currentUser = JSON.parse(stored);
+            if (currentUser && currentUser.id === user.id) {
+              // find role name from roles list
+              const roleObj = roles.find((r) => String(r.id) === String(form.role_id));
+              const newRoleName = roleObj ? roleObj.name : null;
+              if (newRoleName) {
+                currentUser.role = newRoleName;
+                const storage = localStorage.getItem("cms_user") ? localStorage : sessionStorage;
+                storage.setItem("cms_user", JSON.stringify(currentUser));
+                console.log("Updated stored cms_user role to:", newRoleName);
+
+                // fetch and update modules for the new role
+                try {
+                  await dispatch(fetchModulesByRole(newRoleName)).unwrap();
+                  console.log("Updated modules after user role change for current user");
+                } catch (e) {
+                  console.error("Failed to fetch modules after user role change", e);
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Failed to refresh current user's stored role/modules", e);
+        }
+
       } else {
         const fd = new FormData();
 

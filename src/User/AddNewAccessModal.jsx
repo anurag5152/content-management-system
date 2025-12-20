@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { selectRolesList, selectRolesStatus, fetchRoles, createRole, updateRole } from "../store/rolesSlice.js";
-import { fetchModulesByRole } from "../store/modulesSlice";
+import { fetchModulesByRole, setModules } from "../store/modulesSlice";
 import { MODULES } from "../modules/modules.jsx";
 
 const AddNewAccessModal = ({ open, onClose, initialRoleId = null }) => {
@@ -100,13 +100,27 @@ const AddNewAccessModal = ({ open, onClose, initialRoleId = null }) => {
             } else if (mode === "edit" && selectedRoleId) {
                 const updated = await dispatch(updateRole({ id: selectedRoleId, name: roleName.trim(), modules: payloadModules })).unwrap();
 
-                // if the current logged in user's role matches the updated role, refresh modules
+                // if the current logged in user's role matches the updated role (case-insensitive), refresh modules
                 try {
                     const stored = localStorage.getItem("cms_user") || sessionStorage.getItem("cms_user");
                     if (stored) {
                         const user = JSON.parse(stored);
-                        if (user.role === updated.name) {
-                            await dispatch(fetchModulesByRole(updated.name)).unwrap();
+                                console.log("Role update response:", updated);
+                        const userRole = (user.role || "").trim().toLowerCase();
+                        const updatedRole = (updated.name || "").trim().toLowerCase();
+                        console.log("Comparing roles -> logged-in:", user.role, "| updated:", updated.name);
+                        if (userRole && updatedRole && userRole === updatedRole) {
+                            // update storage and Redux directly so change is immediately visible in this tab
+                            try {
+                                const storage = localStorage.getItem("cms_user") ? localStorage : sessionStorage;
+                                storage.setItem("cms_modules", JSON.stringify(updated.modules || []));
+                                dispatch(setModules(updated.modules || []));
+                                console.log("Refreshed modules for current user role:", updated.modules || []);
+                            } catch (e) {
+                                console.error("Failed to set modules after role update", e);
+                                // fallback to refetch from server
+                                try { await dispatch(fetchModulesByRole(user.role)).unwrap(); } catch (e2) { console.error("fallback fetchModulesByRole failed", e2); }
+                            }
                         }
                     }
                 } catch (e) {
@@ -119,6 +133,20 @@ const AddNewAccessModal = ({ open, onClose, initialRoleId = null }) => {
             }
 
             await dispatch(fetchRoles());
+
+            // refresh current logged-in user's modules unconditionally so changes reflect immediately
+            try {
+                const stored = localStorage.getItem("cms_user") || sessionStorage.getItem("cms_user");
+                if (stored) {
+                    const user = JSON.parse(stored);
+                    if (user?.role) {
+                        console.log("Refreshing modules for logged-in user after role change:", user.role);
+                        await dispatch(fetchModulesByRole(user.role)).unwrap();
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to refresh modules for current user after role change", e);
+            }
 
             setSaving(false);
             onClose && onClose();

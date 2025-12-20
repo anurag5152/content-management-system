@@ -9,10 +9,12 @@ export const fetchModulesByRole = createAsyncThunk(
     try {
       const res = await axios.get(`${API}/api/roles/by-name/${encodeURIComponent(role)}`);
       const modules = res.data?.modules || [];
+      console.log("fetchModulesByRole - fetched modules for role:", role, modules);
 
       try {
         const storage = localStorage.getItem("cms_user") ? localStorage : sessionStorage;
         storage.setItem("cms_modules", JSON.stringify(modules));
+        console.log("fetchModulesByRole - persisted modules to storage for role:", role);
       } catch (e) {
         console.error("Failed to persist cms_modules", e);
       }
@@ -24,10 +26,23 @@ export const fetchModulesByRole = createAsyncThunk(
   }
 );
 
+// initialize from storage so Redux has modules immediately on app load
+const _loadInitialModules = () => {
+  try {
+    const raw = localStorage.getItem("cms_modules") || sessionStorage.getItem("cms_modules");
+    if (raw) {
+      return JSON.parse(raw);
+    }
+  } catch (e) {
+    console.error("Failed to load initial modules from storage", e);
+  }
+  return [];
+};
+
 const modulesSlice = createSlice({
   name: "modules",
   initialState: {
-    list: [],
+    list: _loadInitialModules(),
     status: "idle",
     error: null,
   },
