@@ -1,13 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import axios from "axios";
 import Sidebar from "../components/Sidebar";
+import { fetchModulesByRole } from "../store/modulesSlice";
 import published from "../assets/Dash-logos/published-logo.png";
 import pending from "../assets/Dash-logos/pending-logo.png";
 import planned from "../assets/Dash-logos/planned-logo.png";
 import rejected from "../assets/Dash-logos/reject-logo.png";
-
+const API = process.env.REACT_APP_API_URL || "http://localhost:4000";
 const Dashboard = () => {
+    const dispatch = useDispatch();
     const [startDate, setStartDate] = useState("2024-01-01");
     const [endDate, setEndDate] = useState("2024-01-30");
+
+    useEffect(() => {
+        const stored = localStorage.getItem("cms_user") || sessionStorage.getItem("cms_user");
+        if (!stored) return;
+
+        const user = JSON.parse(stored);
+        if (!user.role) return;
+
+            // fetch modules using Redux so state is reactive
+        dispatch(fetchModulesByRole(user.role)).catch(() => {
+            const storage = localStorage.getItem("cms_user") ? localStorage : sessionStorage;
+            try { storage.setItem("cms_modules", JSON.stringify([])); } catch (e) {}
+        });
+    }, []);
+
 
     const formatDateDisplay = (dateStr) => {
         if (!dateStr) return "";

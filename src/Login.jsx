@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 import axios from "axios";
 import "../src/Login.css";
 import logobase from "./assets/logo_base.png";
 import logotop from "./assets/logo_top.png";
 import { useNavigate } from "react-router-dom";
+import { fetchModulesByRole } from "./store/modulesSlice";
 
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:4000";
 
 const Login = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const [captcha, setCaptcha] = useState("");
@@ -68,6 +71,17 @@ const Login = () => {
 
       const storage = remember ? localStorage : sessionStorage;
       storage.setItem("cms_user", JSON.stringify(user));
+
+      // fetch modules via Redux thunk so store + storage are both updated
+      try {
+        await dispatch(fetchModulesByRole(user.role)).unwrap();
+      } catch (err) {
+        // ensure some value in storage so StorySidebar can read without error
+        try {
+          storage.setItem("cms_modules", JSON.stringify([]));
+        } catch (e) {}
+        console.error("Failed to fetch modules for role", err);
+      }
 
       setPassword("");
       setCaptchaInput("");

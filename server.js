@@ -786,6 +786,39 @@ app.put("/api/roles/:id", async (req, res) => {
     conn.release();
   }
 });
+
+app.get("/api/roles/by-name/:role", async (req, res) => {
+  const { role } = req.params;
+  const conn = await pool.getConnection();
+
+  try {
+    const [roleRows] = await conn.query(
+      `SELECT id FROM roles WHERE name = ? LIMIT 1`,
+      [role]
+    );
+
+    if (roleRows.length === 0) {
+      return res.json({ modules: [] });
+    }
+
+    const roleId = roleRows[0].id;
+
+    const [permRows] = await conn.query(
+      `SELECT permission_key FROM role_permissions WHERE role_id = ?`,
+      [roleId]
+    );
+
+    const modules = permRows.map(r => r.permission_key);
+
+    res.json({ modules });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  } finally {
+    conn.release();
+  }
+});
+
+
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
   const conn = await pool.getConnection();

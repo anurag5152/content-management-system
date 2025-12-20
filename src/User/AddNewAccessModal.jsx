@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { selectRolesList, selectRolesStatus, fetchRoles, createRole, updateRole } from "../store/rolesSlice.js";
+import { fetchModulesByRole } from "../store/modulesSlice";
 import { MODULES } from "../modules/modules.jsx";
 
 const AddNewAccessModal = ({ open, onClose, initialRoleId = null }) => {
@@ -97,7 +98,20 @@ const AddNewAccessModal = ({ open, onClose, initialRoleId = null }) => {
             if (mode === "create") {
                 await dispatch(createRole({ name: roleName.trim(), modules: payloadModules })).unwrap();
             } else if (mode === "edit" && selectedRoleId) {
-                await dispatch(updateRole({ id: selectedRoleId, name: roleName.trim(), modules: payloadModules })).unwrap();
+                const updated = await dispatch(updateRole({ id: selectedRoleId, name: roleName.trim(), modules: payloadModules })).unwrap();
+
+                // if the current logged in user's role matches the updated role, refresh modules
+                try {
+                    const stored = localStorage.getItem("cms_user") || sessionStorage.getItem("cms_user");
+                    if (stored) {
+                        const user = JSON.parse(stored);
+                        if (user.role === updated.name) {
+                            await dispatch(fetchModulesByRole(updated.name)).unwrap();
+                        }
+                    }
+                } catch (e) {
+                    console.error("Failed to refresh modules after role update", e);
+                }
             } else {
                 setError("Invalid action");
                 setSaving(false);

@@ -1,20 +1,31 @@
 import { NavLink } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { selectModules } from "../store/modulesSlice";
 
 const StorySidebar = () => {
+  const modulesFromStore = useSelector(selectModules);
+  const modules = (modulesFromStore && modulesFromStore.length > 0)
+    ? modulesFromStore
+    : JSON.parse(localStorage.getItem("cms_modules") || sessionStorage.getItem("cms_modules") || "[]");
+
   const items = [
-    { label: "Add Story", to: "/AddStory" },
-    { label: "View Story", to: "/ViewStory" },
-    { label: "View Schedule Story", to: "/Dashboard/story/scheduled" },
-    { label: "E-Paper PDF List", to: "/Dashboard/story/epaper" },
-    { label: "Create Poll", to: "/Dashboard/story/poll" },
-    { label: "Video List", to: "/Dashboard/story/videos" },
-    { label: "Contact List", to: "/Dashboard/story/contacts" },
+    { label: "Add Story", to: "/AddStory", key: "add_story" },
+    { label: "View Story", to: "/ViewStory", key: "view_story" },
+    { label: "View Schedule Story", to: "/Dashboard/story/scheduled", key: "view_scheduled_story" },
+    { label: "E-Paper PDF List", to: "/Dashboard/story/epaper", key: "epaper" },
+    { label: "Create Poll", to: "/Dashboard/story/poll", key: "create_poll" },
+    { label: "Video List", to: "/Dashboard/story/videos", key: "video_list" },
+    { label: "Contact List", to: "/Dashboard/story/contacts", key: "contact_list" },
   ];
+
+  const allowedItems = items.filter(item => modules.includes(item.key));
+
+
 
   return (
     <aside className="w-48 bg-[#1E1E1E] text-slate-200 py-6 px-2">
       <nav className="flex flex-col gap-1">
-        {items.map((item) => (
+        {allowedItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}

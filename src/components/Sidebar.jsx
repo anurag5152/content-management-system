@@ -1,6 +1,8 @@
 import axios from "axios";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { clearModules } from "../store/modulesSlice";
 import logobase from "../assets/logo_base.png";
 import logotop from "../assets/logo_top.png";
 
@@ -47,9 +49,14 @@ const Sidebar = () => {
     fetchUserData();
   }, []);
 
+  const dispatch = useDispatch();
+
   const handleLogout = () => {
     localStorage.removeItem("cms_user");
     sessionStorage.removeItem("cms_user");
+    localStorage.removeItem("cms_modules");
+    sessionStorage.removeItem("cms_modules");
+    dispatch(clearModules());
     navigate("/login");
   };
 
