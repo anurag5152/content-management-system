@@ -6,7 +6,9 @@ export const MODULES = [
   { id: "create_poll", label: "Create Poll", group: "story" },
   { id: "video_list", label: "Video List", group: "story" },
   { id: "contact_list", label: "Contact List", group: "story" },
-  { id: "user_access_management", label: "User Access Management", group: "user" }
+  { id: "user_access_management", label: "User Access Management", group: "user" },
+  { id: "admin_user_list", label: "Admin User List", group: "user" },
+  { id: "users", label: "Users", group: "user" },
 ];
 
 export default MODULES;

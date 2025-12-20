@@ -39,27 +39,27 @@ const ViewStory = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#F6F7FB]">
+    <div className="min-h-screen flex text-sm bg-[#F6F7FB]">
       <Sidebar />
 
       <main className="flex flex-1">
         <StorySidebar />
 
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-6 text-sm">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-lg font-semibold text-slate-800">
+            <h1 className="text-sm font-semibold text-slate-800">
               View Story
             </h1>
 
-            <div className="relative w-64">
+            <div className="relative w-44">
               <input
                 type="text"
                 placeholder="Search by Text or ID"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-[#EAEAEA] border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full bg-[#EAEAEA] border border-slate-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
-              <span className="absolute right-3 top-2.5 text-slate-400 text-sm">
+              <span className="absolute right-3 top-2.3 text-slate-400 text-sm">
                 🔍
               </span>
             </div>
@@ -69,13 +69,13 @@ const ViewStory = () => {
             <table className="w-full text-sm">
               <thead className="bg-[#F8F8F8] border-b border-slate-200">
                 <tr>
-                  <th className="px-4 py-2 text-left font-medium">ID</th>
-                  <th className="px-4 py-2 text-left font-medium">Author</th>
-                  <th className="px-4 py-2 text-left font-medium">Title</th>
-                  <th className="px-4 py-2 text-left font-medium">
+                  <th className="px-4 py-1 text-left font-medium">ID</th>
+                  <th className="px-4 py-1 text-left font-medium">Author</th>
+                  <th className="px-4 py-1 text-left font-medium">Title</th>
+                  <th className="px-4 py-1 text-left font-medium">
                     Approved By
                   </th>
-                  <th className="px-4 py-2 text-left font-medium">Status</th>
+                  <th className="px-4 py-1 text-left font-medium">Status</th>
                 </tr>
               </thead>
 
@@ -85,11 +85,11 @@ const ViewStory = () => {
                     key={s.id}
                     className="border-b border-slate-100 hover:bg-slate-50"
                   >
-                    <td className="px-4 py-3 text-blue-700 font-medium cursor-pointer">
+                    <td className="px-4 py-1 text-blue-700 font-medium cursor-pointer">
                       {s.id}
                     </td>
 
-                    <td className="px-4 py-3 flex items-center gap-3">
+                    <td className="px-4 py-1 flex items-center gap-3">
                       <img
                         src={defaultAvatar}
                         className="h-8 w-8 rounded-full"
@@ -98,7 +98,7 @@ const ViewStory = () => {
                       <span>{s.author || "-"}</span>
                     </td>
 
-                    <td className="px-4 py-3 text-slate-700">
+                    <td className="px-4 py-1 text-slate-700">
                       {s.short_title || "-"}
                       <div className="text-[11px] text-slate-500 mt-1">
                         Published On : {formatDate(s.created_at)}
@@ -106,17 +106,17 @@ const ViewStory = () => {
                       </div>
                     </td>
 
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-1">
                       {s.author || "-"}
                     </td>
 
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-1">
                       {s.status === "published" ? (
-                        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs">
+                        <span className="px-3 py-1 border border-slate-700 text-green-700 rounded-full text-xs">
                           ● Published
                         </span>
                       ) : (
-                        <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs">
+                        <span className="px-3 py-1 border border-slate-700 text-red-700 rounded-full text-xs">
                           ● Unpublished
                         </span>
                       )}

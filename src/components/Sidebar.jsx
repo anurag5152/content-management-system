@@ -1,6 +1,6 @@
-
+import axios from "axios";
 import { NavLink, useNavigate } from "react-router-dom";
-
+import { useEffect, useState } from "react";
 import logobase from "../assets/logo_base.png";
 import logotop from "../assets/logo_top.png";
 
@@ -10,10 +10,46 @@ import toolslogo from "../assets/Dash-logos/tool-logo.png";
 import userlogo from "../assets/Dash-logos/users-logo.png";
 import priorlogo from "../assets/Dash-logos/prior-logo.png";
 
+const API = process.env.REACT_APP_API_URL || "http://localhost:4000";
+
 const Sidebar = () => {
   const navigate = useNavigate();
+  const [initials, setInitials] = useState("??");
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const savedUser = localStorage.getItem("cms_user") || sessionStorage.getItem("cms_user");
+        
+        if (!savedUser) {
+          console.error("No user found in storage");
+          return;
+        }
+
+        const userObj = JSON.parse(savedUser);
+        const userId = userObj.id; 
+
+        const response = await axios.get(`${API}/api/users/${userId}`);
+        const { first_name, last_name } = response.data;
+
+        if (first_name && last_name) {
+          setInitials(`${first_name[0]}${last_name[0]}`.toUpperCase());
+        } else if (first_name) {
+          setInitials(first_name[0].toUpperCase());
+        } else {
+          setInitials(userObj.username?.charAt(0).toUpperCase() || "U");
+        }
+      } catch (error) {
+        console.error("Error fetching user from MySQL:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleLogout = () => {
+    localStorage.removeItem("cms_user");
+    sessionStorage.removeItem("cms_user");
     navigate("/login");
   };
 
@@ -121,7 +157,7 @@ const Sidebar = () => {
 
       <div className="mt-auto border-t border-slate-800 px-4 py-4 flex flex-col items-center gap-2">
         <div className="flex items-center justify-center w-9 h-9 rounded-full bg-amber-400 text-slate-900 font-bold">
-          SB
+          {initials}
         </div>
 
         <button

@@ -28,6 +28,8 @@ const ALLOWED_MODULES = [
   "video_list",
   "contact_list",
   "user_access_management",
+  "admin_user_list",
+  "users",
 ];
 
 const storage = multer.diskStorage({
